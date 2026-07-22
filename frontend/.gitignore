@@ -1,0 +1,6 @@
+# NextJS specific
+.next/
+out/
+node_modules/
+certificates/
+next-env.d.ts

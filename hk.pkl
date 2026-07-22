@@ -1,7 +1,7 @@
 amends "package://github.com/jdx/hk/releases/download/v1.52.0/hk@1.52.0#/Config.pkl"
 import "package://github.com/jdx/hk/releases/download/v1.52.0/hk@1.52.0#/Builtins.pkl"
 
-exclude = List("node_modules", "pnpm-lock.yaml", "dist", "build", "target")
+exclude = List("node_modules", "**/pnpm-lock.yaml", "dist", "build", "target")
 
 local frontend = new Group {
 	workspace_indicator = "pnpm.yaml"
