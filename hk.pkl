@@ -7,6 +7,7 @@ local frontend = new Group {
 	workspace_indicator = "pnpm.yaml"
 	steps {
 		["biome"] = Builtins.biome
+		["sort-package-json"] = Builtins.sort_package_json
 	}
 }
 
@@ -39,7 +40,10 @@ local shared = new Mapping<String, Step> {
 	["taplo"] = Builtins.taplo
 	["taplo-fmt"] = Builtins.taplo_format
 	["sql"] = Builtins.sql_fluff
-	["shellcheck"] = Builtins.shellcheck
+
+	["actionlint"] = Builtins.actionlint
+	["hadolint"] = Builtins.hadolint
+	["docker-compose"] = Builtins.dclint
 
 	["trailing-whitespace"] = Builtins.trailing_whitespace
 	["mixed-line-ending"] = Builtins.mixed_line_ending
@@ -59,6 +63,7 @@ hooks {
 			["check-merge-conflict"] = Builtins.check_merge_conflict,
 			["check-added-large-files"] = Builtins.check_added_large_files,
 			["detect-private-key"] = Builtins.detect_private_key,
+			["betterleaks"] = Builtins.betterleaks
 		}
 	}
 	["commit-msg"] {
