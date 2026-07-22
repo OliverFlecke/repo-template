@@ -1,0 +1,21 @@
+FROM node:26.2-alpine3.23 AS base
+
+FROM base AS builder
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV CI=true
+
+WORKDIR /app
+
+# TODO: ensure the version here is synced with mise.toml
+RUN npm install -g pnpm@11
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+RUN pnpm build
+
+# Production image
+FROM nginx:1.31-alpine3.24
+COPY --from=builder /app/out /usr/share/nginx/html
+# ENTRYPOINT ["nginx"]
