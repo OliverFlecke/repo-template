@@ -1,0 +1,9 @@
+# .dockerignore
+bin/
+obj/
+*.md
+.git/
+.vs/
+.vscode/
+**/.DS_Store
+**/appsettings.Development.json
