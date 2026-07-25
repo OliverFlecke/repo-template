@@ -16,15 +16,24 @@ builder.Services.AddOpenApi("v1", options =>
 
 builder.Services.AddHealthChecks();
 
-var app = builder.Build();
+if (builder.Environment.IsDevelopment())
+{
+	builder.Services.AddCors();
+}
 
-app.MapGroup("organization").MapOrganizationEndpoints();
-app.MapHealthChecks("/healthz");
+var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
 	app.MapOpenApi();
+	app.UseCors(opts => opts
+		.AllowAnyHeader()
+		.AllowAnyOrigin()
+		.AllowAnyMethod());
 }
+
+app.MapGroup("organization").MapOrganizationEndpoints();
+app.MapHealthChecks("/healthz");
 
 app.Run();
 

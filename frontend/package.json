@@ -4,17 +4,21 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev --experimental-https",
-		"build": "next build",
 		"start": "next start",
+		"build": "next build",
+		"build:api": "openapi-ts",
+		"clean:api": "rm -r api/",
 		"fmt": "biome format --write",
 		"lint": "biome lint"
 	},
 	"dependencies": {
+		"@tanstack/react-query": "^5.101.4",
 		"next": "16.2.10",
 		"react": "19.2.4",
 		"react-dom": "19.2.4"
 	},
 	"devDependencies": {
+		"@hey-api/openapi-ts": "0.99.0",
 		"@types/node": "^20",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
