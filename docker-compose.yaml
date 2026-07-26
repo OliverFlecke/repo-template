@@ -1,6 +1,15 @@
 ---
 name: repo-template
 services:
+  app:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: app
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
   api:
     build:
       context: .

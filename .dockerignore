@@ -1,9 +1,9 @@
-# .dockerignore
-bin/
-obj/
+**/bin/
+**/obj/
 *.md
 .git/
 .vs/
 .vscode/
+**/node_modules/
 **/.DS_Store
 **/appsettings.Development.json

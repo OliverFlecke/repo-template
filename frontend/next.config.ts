@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+export default {
 	reactCompiler: true,
-	output: "export", // Default to export to enable serving as static assets
-};
-
-export default nextConfig;
+	// Default to export to enable serving as static assets
+	output: process.env.OUTPUT_MODE === "standalone" ? "standalone" : "export",
+} satisfies NextConfig;
