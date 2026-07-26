@@ -43,7 +43,8 @@ runs:
       shell: bash
       run: |
         IMAGE_NAME="${{ inputs.registry }}/${{ inputs.username }}/${{ inputs.image-name }}"
-        echo "Constructed image name: $FULL_IMAGE_NAME"
+        IMAGE_NAME="${IMAGE_NAME,,}"
+        echo "Constructed image name: $IMAGE_NAME"
 
         echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
         echo "SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
