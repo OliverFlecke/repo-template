@@ -1,0 +1,74 @@
+name: Build and Push Docker
+description: Build an image from a Dockerfile and push it to a registry
+
+inputs:
+  image-name:
+    description: "Name of the image to build and publish"
+    required: true
+  registry:
+    description: "Registry to push the image to"
+    required: false
+    default: "ghcr.io"
+  docker-context:
+    description: "Context to run docker build in"
+    required: false
+    default: ""
+  docker-file:
+    description: "Path to the Dockerfile to build"
+    required: false
+    default: "Dockerfile"
+  platforms:
+    description: "Comma-separated list of target platforms"
+    required: false
+    default: "linux/amd64"
+
+permissions:
+  packages: write
+  contents: read
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v7
+    - uses: docker/setup-buildx-action@v4
+
+    - name: Login to container registry
+      uses: docker/login-action@v4
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Construct Image Name
+      shell: bash
+      run: |
+        IMAGE_NAME: ${{ inputs.registry }}/${{ github.repository_owner }}/${{ inputs.image-name }}
+        echo "Constructed image name: $FULL_IMAGE_NAME"
+        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v6
+      with:
+        images: ${{ env.IMAGE_NAME }}
+        tags: |
+          type=schedule
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,format=long
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=${{ github.ref_name }}-${{ github.sha }}-{{ date 'X' }},enable={{is_default_branch}}
+          type=match,pattern=${{ inputs.image-name }}-v(.*),group=1,prefix=v,event=tag
+
+    - name: Build image
+      id: build
+      uses: docker/build-push-action@v7
+      with:
+        push: ${{ github.event_name != 'pull_request' }}
+        cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+        cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+        platforms: ${{ inputs.platforms }}
+        context: ${{ inputs.docker-context }}
+        file: ${{ inputs.docker-file }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
