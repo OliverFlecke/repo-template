@@ -14,8 +14,8 @@ COPY api/ .
 WORKDIR "/src/Api"
 RUN dotnet build "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
 
+# Build frontend
 FROM node:26.5-alpine3.24 AS base
-
 FROM base AS builder
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV CI=true
