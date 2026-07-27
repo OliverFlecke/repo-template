@@ -2,6 +2,7 @@ tmp/
 openapi.json
 TestResults/
 Generated/
+logs/
 
 ### Linux ###
 *~

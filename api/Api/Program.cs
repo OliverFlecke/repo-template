@@ -11,11 +11,27 @@ using Microsoft.Extensions.Options;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
 using Npgsql;
+using Serilog;
+using Serilog.Formatting.Compact;
 using Wolverine;
 using Wolverine.Marten;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.WebHost.ConfigureKestrel(x => x.AddServerHeader = false);
+
+builder.Services.AddSerilog(opts =>
+	{
+		opts.WriteTo.Console();
+		opts.WriteTo.File(
+			formatter: new CompactJsonFormatter(),
+			Path.Combine("logs", "api.log"),
+			rollingInterval: RollingInterval.Day,
+			fileSizeLimitBytes: 10 * 1024 * 1024,
+			retainedFileCountLimit: 2,
+			rollOnFileSizeLimit: true,
+			shared: true,
+			flushToDiskInterval: TimeSpan.FromSeconds(1));
+	});
 
 builder.Services.ConfigureHttpJsonOptions(opts =>
 {
