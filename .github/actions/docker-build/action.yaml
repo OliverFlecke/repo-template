@@ -69,7 +69,7 @@ runs:
           type=ref,event=pr
           type=sha,format=long
           type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=${{ env.branch }}-${{ env.SHA }}-{{ date 'X' }},enable={{is_default_branch}}
+          type=raw,value=${{ env.BRANCH }}-${{ env.SHA }}-{{ date 'X' }},enable={{is_default_branch}}
           type=match,pattern=${{ inputs.image-name }}-v(.*),group=1,prefix=v,event=tag
 
     - name: Build image
