@@ -39,6 +39,7 @@ app.Run();
 
 [JsonSerializable(typeof(Organization))]
 [JsonSerializable(typeof(Organization[]))]
+[JsonSerializable(typeof(List<Organization>))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

@@ -5,8 +5,9 @@
 	"scripts": {
 		"dev": "next dev --experimental-https",
 		"start": "next start",
-		"build": "next build",
+		"build": "pnpm build:api && pnpm build:app",
 		"build:api": "openapi-ts",
+		"build:app": "next build",
 		"clean:api": "rm -r api/",
 		"fmt": "biome format --write",
 		"lint": "biome lint"

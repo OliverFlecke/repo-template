@@ -1,0 +1,26 @@
+name: Docker - API
+
+on:
+  merge_group:
+  push:
+    branches:
+      - main
+    tags:
+      - "api-v*"
+  pull_request:
+
+jobs:
+  docker-api:
+    name: Build API Docker image
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/docker-build
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          image-name: repo-template-api
+          docker-file: api/Dockerfile
