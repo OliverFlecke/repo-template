@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<!-- <PublishAot>true</PublishAot> -->
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<WarningsAsErrors>IL2026;IL2046;IL2055;IL2065;IL2067;IL2070;IL2072;IL2075;IL2090;IL2091;IL2111;IL3050;IL3051</WarningsAsErrors>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -11,11 +12,18 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Marten" />
+		<PackageReference Include="Marten.NodaTime" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" />
 		<PackageReference Include="Microsoft.Extensions.ApiDescription.Server">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.OpenApi" />
+		<PackageReference Include="NodaTime" />
+		<PackageReference Include="Npgsql" />
+		<PackageReference Include="Npgsql.DependencyInjection" />
+		<PackageReference Include="WolverineFx" />
+		<PackageReference Include="WolverineFx.Marten" />
 	</ItemGroup>
 </Project>
