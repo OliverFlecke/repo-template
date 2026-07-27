@@ -1,18 +1,28 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+
 using Api.Config;
-using Api.Endpoint;
+using Api.Org.Endpoint;
+using Api.Org.Response;
+
 using JasperFx;
 using JasperFx.CodeGeneration;
 using JasperFx.Events.Daemon;
+using JasperFx.Events.Projections;
+
 using Marten;
 using Marten.NodaTimePlugin;
+
 using Microsoft.Extensions.Options;
+
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
+
 using Npgsql;
+
 using Serilog;
 using Serilog.Formatting.Compact;
+
 using Wolverine;
 using Wolverine.Marten;
 
@@ -45,11 +55,6 @@ builder.Services.AddOpenApi("v1", options =>
 });
 
 builder.Services.AddHealthChecks();
-
-if (builder.Environment.IsDevelopment())
-{
-	builder.Services.AddCors();
-}
 
 builder.Services
 	.AddOptions<DatabaseConfig>()
@@ -84,6 +89,8 @@ else
 	builder.Services.AddMarten(opts =>
 		{
 			opts.UseNodaTime();
+
+			opts.Projections.Snapshot<Api.Org.Model.Organization>(SnapshotLifecycle.Async);
 		})
 		.UseNpgsqlDataSource()
 		.AddAsyncDaemon(DaemonMode.HotCold)
@@ -97,6 +104,11 @@ builder.Host.UseWolverine(opts =>
 		opts.Policies.UseDurableInboxOnAllListeners();
 		opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
 	});
+
+if (builder.Environment.IsDevelopment())
+{
+	builder.Services.AddCors();
+}
 
 // Build and run the application
 var app = builder.Build();
@@ -117,7 +129,6 @@ app.MapHealthChecks("/healthz");
 await app.RunJasperFxCommands(args);
 
 [JsonSerializable(typeof(Organization))]
-[JsonSerializable(typeof(Organization[]))]
 [JsonSerializable(typeof(List<Organization>))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {

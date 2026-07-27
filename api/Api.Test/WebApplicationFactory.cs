@@ -1,12 +1,18 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Marten;
+
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+
 using Testcontainers.PostgreSql;
+
+using TUnit.AspNetCore;
 using TUnit.Core.Interfaces;
+
+using Wolverine;
 
 namespace Api.Test;
 
-public class WebApplicationFactory : WebApplicationFactory<Program>, IAsyncInitializer
+public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncInitializer
 {
 	[ClassDataSource<InMemoryDatabase>(Shared = SharedType.PerTestSession)]
 	public required InMemoryDatabase Database { get; init; } = null!;
@@ -22,7 +28,6 @@ public class WebApplicationFactory : WebApplicationFactory<Program>, IAsyncIniti
 	{
 		builder.ConfigureAppConfiguration((host, config) =>
 		{
-			Console.WriteLine($"Attempting to set configuration: {Database.Container.GetMappedPublicPort(5432)}");
 			config.AddInMemoryCollection(new Dictionary<string, string?>
 			{
 				{ "DOTNET_ENVIRONMENT", "Production"},
@@ -31,12 +36,21 @@ public class WebApplicationFactory : WebApplicationFactory<Program>, IAsyncIniti
 				{ "Database:Port", Database.Container.GetMappedPublicPort(5432).ToString() },
 			});
 		});
+
+		builder.ConfigureServices((host, services) =>
+		{
+			services.UseWolverineSoloMode();
+			services.DisableAllWolverineMessagePersistence();
+			services.DisableAllExternalWolverineTransports();
+			services.MartenDaemonModeIsSolo();
+		});
 	}
 }
 
 public class InMemoryDatabase : IAsyncInitializer, IAsyncDisposable
 {
 	public PostgreSqlContainer Container { get; } = new PostgreSqlBuilder("postgres:18-alpine")
+		.WithTmpfsMount("/var/lib/pg/data")
 		.Build();
 
 	public async Task InitializeAsync() => await Container.StartAsync();
