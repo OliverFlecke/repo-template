@@ -26,4 +26,8 @@
 		<PackageReference Include="WolverineFx" />
 		<PackageReference Include="WolverineFx.Marten" />
 	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
+		<PackageReference Include="WolverineFx.RuntimeCompilation" />
+	</ItemGroup>
 </Project>

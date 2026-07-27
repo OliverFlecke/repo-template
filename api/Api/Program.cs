@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using Api.Config;
 using Api.Endpoint;
@@ -6,8 +7,10 @@ using JasperFx.CodeGeneration;
 using JasperFx.Events.Daemon;
 using Marten;
 using Marten.NodaTimePlugin;
+using Microsoft.Extensions.Options;
 using NodaTime;
 using NodaTime.Serialization.SystemTextJson;
+using Npgsql;
 using Wolverine;
 using Wolverine.Marten;
 
@@ -32,10 +35,15 @@ if (builder.Environment.IsDevelopment())
 	builder.Services.AddCors();
 }
 
-var databaseConfig = builder.Configuration
-	.GetRequiredSection(DatabaseConfig.SectionKey)
-	.Get<DatabaseConfig>()!;
-builder.Services.AddNpgsqlDataSource(databaseConfig.ConnectionString);
+builder.Services
+	.AddOptions<DatabaseConfig>()
+	.BindConfiguration(DatabaseConfig.SectionKey)
+	.ValidateOnStart();
+builder.Services.AddSingleton(sp =>
+{
+	var config = sp.GetRequiredService<IOptions<DatabaseConfig>>();
+	return new NpgsqlDataSourceBuilder(config.Value.ConnectionString).Build();
+});
 
 builder.Services.CritterStackDefaults(options =>
 {
@@ -47,23 +55,36 @@ builder.Services.CritterStackDefaults(options =>
 	options.Development.GeneratedCodeMode = TypeLoadMode.Dynamic;
 });
 
-builder.Services.AddMarten(opts =>
-	{
-		opts.UseNodaTime();
-	})
-	.UseNpgsqlDataSource()
-	.AddAsyncDaemon(DaemonMode.HotCold)
-	.UseLightweightSessions()
-	.IntegrateWithWolverine();
+var generatingOpenApi = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+if (generatingOpenApi)
+{
+	builder.Services
+		.AddMarten(opts => opts.Connection("Server=.;Database=Foo"))
+		.AddAsyncDaemon(DaemonMode.Disabled)
+		.UseLightweightSessions();
+}
+else
+{
+	builder.Services.AddMarten(opts =>
+		{
+			opts.UseNodaTime();
+		})
+		.UseNpgsqlDataSource()
+		.AddAsyncDaemon(DaemonMode.HotCold)
+		.IntegrateWithWolverine()
+		.UseLightweightSessions();
+}
 
 builder.Host.UseWolverine(opts =>
 	{
+		opts.CodeGeneration.TypeLoadMode = TypeLoadMode.Static;
 		opts.Policies.UseDurableInboxOnAllListeners();
 		opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
 	});
 
 // Build and run the application
 var app = builder.Build();
+// app.Logger.LogInformation("{}", ((IConfigurationRoot)app.Configuration).GetDebugView());
 
 if (app.Environment.IsDevelopment())
 {
@@ -77,7 +98,7 @@ if (app.Environment.IsDevelopment())
 app.MapGroup("organization").MapOrganizationEndpoints();
 app.MapHealthChecks("/healthz");
 
-await app.RunAsync();
+await app.RunJasperFxCommands(args);
 
 [JsonSerializable(typeof(Organization))]
 [JsonSerializable(typeof(Organization[]))]

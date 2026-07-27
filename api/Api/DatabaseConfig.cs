@@ -10,6 +10,10 @@ public sealed record DatabaseConfig
 	/// <example>localhost</example>
 	public required string Host { get; init; }
 
+	/// <summary>Port of the postgres server.</summary>
+	/// <example>5432</example>
+	public required int Port { get; init; }
+
 	/// <summary>Username to connect to the postgres server.</summary>
 	/// <example>postgres</example>
 	public required string Username { get; init; }
@@ -23,5 +27,5 @@ public sealed record DatabaseConfig
 	public required string Database { get; init; }
 
 	/// <summary>Connection string to connect to a postgres server</summary>
-	public string ConnectionString => $"Host={Host};Username={Username};Password={Password};Database={Database}";
+	public string ConnectionString => $"Host={Host};Port={Port};Username={Username};Password={Password};Database={Database}";
 }

@@ -13,8 +13,11 @@
     <PackageVersion Include="NodaTime" Version="3.3.3" />
     <PackageVersion Include="Npgsql" Version="10.0.3" />
     <PackageVersion Include="Npgsql.DependencyInjection" Version="10.0.3" />
+    <PackageVersion Include="Testcontainers" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
     <PackageVersion Include="WolverineFx" Version="6.23.0" />
     <PackageVersion Include="WolverineFx.Marten" Version="6.23.0" />
+	<PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.23.0" />
   </ItemGroup>
   <!-- Development dependencies -->
   <ItemGroup>
