@@ -1,4 +1,4 @@
-import List from "@/component/org/List";
+// import List from "@/component/org/List";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -6,7 +6,7 @@ export default function Home() {
 		<main className={styles.main}>
 			<h1>Template App</h1>
 
-			<List />
+			{/* <List /> */}
 		</main>
 	);
 }
