@@ -1,6 +1,8 @@
 :root {
-	--background: #ffffff;
-	--foreground: #171717;
+	--bg-primary: #ffffff;
+	--bg-secondary: #f2f2f2;
+
+	--fg-primary: #171717;
 
 	--text-primary: #000;
 	--text-secondary: #666;
@@ -12,8 +14,9 @@
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--background: #0a0a0a;
-		--foreground: #ededed;
+		--bg-primary: #0a0a0a;
+		--bg-secondary: #171717;
+		--fg-primary: #ededed;
 
 		--text-primary: #ededed;
 		--text-secondary: #ccc;
@@ -38,8 +41,8 @@ body {
 	min-height: 100%;
 	display: flex;
 	flex-direction: column;
-	color: var(--foreground);
-	background: var(--background);
+	color: var(--fg-primary);
+	background: var(--bg-primary);
 	font-family: Arial, Helvetica, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
