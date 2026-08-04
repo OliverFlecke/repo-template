@@ -1,9 +1,11 @@
 "use client";
 
 import { useAuth } from "react-oidc-context";
+import { useLogout } from "@/component/auth";
 
 export default function Menu() {
-	const { user, signinRedirect, signoutRedirect } = useAuth();
+	const { user, signinRedirect } = useAuth();
+	const logout = useLogout();
 
 	return (
 		<div>
@@ -12,7 +14,7 @@ export default function Menu() {
 			{user ? (
 				<>
 					<div>{user.profile.name}</div>
-					<button onClick={() => signoutRedirect()}>Log out</button>
+					<button onClick={logout}>Log out</button>
 				</>
 			) : (
 				<div>

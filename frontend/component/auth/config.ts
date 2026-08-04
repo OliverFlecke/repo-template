@@ -4,10 +4,11 @@ import { User, WebStorageStateStore } from "oidc-client-ts";
 const oidcConfig = {
 	authority: process.env.NEXT_PUBLIC_AUTHORITY!,
 	client_id: process.env.NEXT_PUBLIC_CLIENT_ID!,
+	scope: process.env.NEXT_PUBLIC_OAUTH_SCOPES!,
+
 	redirect_uri: typeof window !== "undefined" ? window.location.origin : "",
 	automaticSilentRenew: true,
 	revokeTokensOnSignout: true,
-	scope: "openid profile email offline_access",
 
 	stateStore:
 		typeof window !== "undefined"
