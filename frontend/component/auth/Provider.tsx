@@ -29,15 +29,12 @@ function Loader({ children }: Readonly<PropsWithChildren>) {
 	}
 
 	if (error) {
-		console.debug("error auth", error.message, auth);
 		return (
 			<div>
 				Oops... {error.source} caused {error.message}
 			</div>
 		);
 	}
-
-	console.debug("logged in", auth);
 
 	return children;
 }
