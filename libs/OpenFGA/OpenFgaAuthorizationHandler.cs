@@ -49,7 +49,7 @@ sealed class OpenFgaAuthorizationHandler(
 		OpenFgaAuthorizationRequirement req
 	)
 	{
-		var user = context.User.Claims.First(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value;
+		var user = context.User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value;
 		if (user is null) { return; }
 
 		logger.LogDebug("Checking authorization for user {User}. Requirement: {Relation} -> {ObjectType}",

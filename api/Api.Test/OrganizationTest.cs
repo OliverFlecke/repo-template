@@ -16,10 +16,19 @@ public sealed class OrganizationTest
 	[ClassDataSource<WebApplicationFactory>(Shared = SharedType.PerTestSession)]
 	public required WebApplicationFactory App { get; init; }
 
+	readonly string subject = Guid.NewGuid().ToString();
+
+	[Before(HookType.Test)]
+	public Task SetupAdminAccess()
+	{
+		App.OpenFga.MockCheck(subject, "admin", "system", "core", allowed: true);
+		return Task.CompletedTask;
+	}
+
 	[Test]
 	public async Task Organization_Create_RespondWithOk200()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		var body = new CreateOrganizationRequest { Name = "Apple" };
 
@@ -44,7 +53,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_List_SortsAscendingByNameByDefault()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		var first = await client.CreateOrganization($"AAA-{Guid.NewGuid()}");
 		var second = await client.CreateOrganization($"ZZZ-{Guid.NewGuid()}");
@@ -61,7 +70,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_List_SortsDescendingWhenRequested()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		var first = await client.CreateOrganization($"AAA-{Guid.NewGuid()}");
 		var second = await client.CreateOrganization($"ZZZ-{Guid.NewGuid()}");
@@ -78,7 +87,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_List_RespectsRequestedPageSize()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		await client.CreateOrganization($"Paging-{Guid.NewGuid()}");
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
@@ -95,7 +104,7 @@ public sealed class OrganizationTest
 	[Arguments("?page=-1")]
 	public async Task Organization_List_WithInvalidPage_RespondsBadRequest(string query)
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		var response = await client.GetAsync($"v1/admin/organization{query}");
 
@@ -107,7 +116,7 @@ public sealed class OrganizationTest
 	[Arguments("?pageSize=101")]
 	public async Task Organization_List_WithInvalidPageSize_RespondsBadRequest(string query)
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		var response = await client.GetAsync($"v1/admin/organization{query}");
 
@@ -117,7 +126,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_Update_RespondsOkAndUpdatesProjection()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var created = await client.CreateOrganization($"Original-{Guid.NewGuid()}");
 
 		var newName = $"Updated-{Guid.NewGuid()}";
@@ -138,7 +147,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_Update_WithUnknownId_RespondsNotFound()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		var response = await client.PatchAsJsonAsync($"v1/admin/organization/{Guid.NewGuid()}", new UpdateOrganizationRequest { Name = "Doesn't matter" });
 
@@ -148,7 +157,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_Delete_RespondsOkAndRemovesProjection()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var created = await client.CreateOrganization($"ToDelete-{Guid.NewGuid()}");
 
 		var response = await client.DeleteAsync($"v1/admin/organization/{created.Id}");
@@ -164,7 +173,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_Delete_WithUnknownId_RespondsOk()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
 		var response = await client.DeleteAsync($"v1/admin/organization/{Guid.NewGuid()}");
 
@@ -174,7 +183,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_Delete_CalledTwice_BothCallsRespondOk()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var created = await client.CreateOrganization($"DeleteTwice-{Guid.NewGuid()}");
 
 		var firstResponse = await client.DeleteAsync($"v1/admin/organization/{created.Id}");
@@ -187,7 +196,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_Delete_RemovesOrganizationFromList()
 	{
-		var client = App.CreateClient().WithAuthenticatedUser();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var created = await client.CreateOrganization($"DeleteFromList-{Guid.NewGuid()}");
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 

@@ -63,6 +63,7 @@ builder.Services.AddOpenApi("v1", options =>
 builder.Services.AddProblemDetails();
 
 builder.SetupAuthentication();
+builder.SetupOpenFga();
 builder.Services.AddHealthChecks();
 
 builder.Services
@@ -136,7 +137,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 var adminEndpoints = app.MapGroup("v1/admin")
-	// .RequireAuthorization(new OpenFgaAuthorizationRequirement("admin", "system", "core"))
+	.RequireAuthorization(new OpenFgaAuthorizationRequirement("admin", "system", "core"))
 	;
 
 adminEndpoints.MapGroup("organization").MapOrganizationEndpoints();

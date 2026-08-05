@@ -21,6 +21,9 @@ public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncI
 	[ClassDataSource<InMemoryDatabase>(Shared = SharedType.PerTestSession)]
 	public required InMemoryDatabase Database { get; init; } = null!;
 
+	[ClassDataSource<OpenFgaMock>(Shared = SharedType.PerTestSession)]
+	public required OpenFgaMock OpenFga { get; init; } = null!;
+
 	public async Task InitializeAsync()
 	{
 		_ = Server;
@@ -44,6 +47,9 @@ public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncI
 				{ "ASPNET_ENVIRONMENT", "Production"},
 				{ "Database:Host", Database.Container.Hostname },
 				{ "Database:Port", Database.Container.GetMappedPublicPort(5432).ToString() },
+				{ "OpenFga:Host", OpenFga.Host.ToString() },
+				{ "OpenFga:StoreId", "test-store" },
+				{ "OpenFga:ModelId", "test-model" },
 			});
 		});
 

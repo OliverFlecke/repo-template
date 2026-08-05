@@ -12,6 +12,7 @@ public static class OpenFgaSetup
 		builder.Services.AddOptions<OpenFgaConfig>()
 			.BindConfiguration(OpenFgaConfig.Section)
 			.ValidateOnStart();
+		builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<OpenFgaConfig>>().Value);
 
 		builder.Services.AddHttpClient<OpenFgaApiClient>((sp, http) =>
 		{

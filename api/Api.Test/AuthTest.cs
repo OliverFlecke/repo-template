@@ -34,4 +34,19 @@ public sealed class AuthTest
 			await Assert.That(response).HasStatusCode(HttpStatusCode.Unauthorized);
 		}
 	}
+
+	[Test]
+	[Arguments("GET", "v1/admin/organization")]
+	[Arguments("POST", "v1/admin/organization")]
+	[Arguments("PATCH", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("DELETE", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	public async Task Endpoint_WhenUserIsNotAdmin_RespondsForbidden(string method, string path)
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject: "not-an-admin");
+
+		using var request = new HttpRequestMessage(new HttpMethod(method), path);
+		var response = await client.SendAsync(request);
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.Forbidden);
+	}
 }
