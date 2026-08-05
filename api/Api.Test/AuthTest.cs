@@ -17,6 +17,7 @@ public sealed class AuthTest
 	[Arguments("POST", "v1/organization")]
 	[Arguments("POST", "v1/organization/00000000-0000-0000-0000-000000000000/member")]
 	[Arguments("DELETE", "v1/organization/00000000-0000-0000-0000-000000000000/member/some-user")]
+	[Arguments("POST", "v1/organization/00000000-0000-0000-0000-000000000000/leave")]
 	public async Task Endpoint_WithoutToken_RespondsUnauthorized(string method, string path)
 	{
 		var client = App.CreateClient();

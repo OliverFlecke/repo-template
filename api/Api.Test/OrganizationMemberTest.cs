@@ -194,6 +194,82 @@ public sealed class OrganizationMemberTest
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 	}
+
+	[Test]
+	public async Task LeaveOrganization_WhenSoleMember_DeletesOrganizationAndRevokesOpenFgaTuple()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await client.CreateMyOrganization($"LeaveAlone-{Guid.NewGuid()}");
+
+		var response = await client.PostAsync($"v1/organization/{org.Id}/leave", null);
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
+
+		using var scope = App.Services.CreateScope();
+		var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
+		await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id))
+			.WaitsFor(x => x.IsNull(), timeout: TimeSpan.FromSeconds(5));
+
+		var revokedAdminTuple = await App.OpenFga.WasWriteCalled(subject, "admin", "organization", org.Id.ToString(), delete: true);
+		await Assert.That(revokedAdminTuple).IsTrue();
+	}
+
+	[Test]
+	public async Task LeaveOrganization_WhenOtherMembersRemain_RemovesOnlyCallerAndKeepsOrganization()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await client.CreateMyOrganization($"LeaveWithOthers-{Guid.NewGuid()}");
+		var otherMember = Guid.NewGuid().ToString();
+		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: true);
+		await client.PostAsJsonAsync(
+			$"v1/organization/{org.Id}/member",
+			new AddMemberRequest { UserId = otherMember, Role = OrganizationRole.Member });
+
+		using (var scope = App.Services.CreateScope())
+		{
+			var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
+			var withBoth = await WaitForProjection(session, org.Id, o => o?.Members.Count == 2);
+			await Assert.That(withBoth).IsNotNull();
+		}
+
+		var otherClient = App.CreateClient().WithAuthenticatedUser(otherMember);
+		var response = await otherClient.PostAsync($"v1/organization/{org.Id}/leave", null);
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
+
+		using (var scope = App.Services.CreateScope())
+		{
+			var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
+			var afterLeave = await WaitForProjection(session, org.Id, o => o is not null && !o.Members.ContainsKey(otherMember));
+			await Assert.That(afterLeave).IsNotNull();
+			await Assert.That(afterLeave!.Members.ContainsKey(subject)).IsTrue();
+		}
+
+		var revokedMemberTuple = await App.OpenFga.WasWriteCalled(otherMember, "member", "organization", org.Id.ToString(), delete: true);
+		await Assert.That(revokedMemberTuple).IsTrue();
+	}
+
+	[Test]
+	public async Task LeaveOrganization_WhenCallerIsNotAMember_RespondsForbidden()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await client.CreateMyOrganization($"LeaveNotMember-{Guid.NewGuid()}");
+		var outsider = App.CreateClient().WithAuthenticatedUser(Guid.NewGuid().ToString());
+
+		var response = await outsider.PostAsync($"v1/organization/{org.Id}/leave", null);
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.Forbidden);
+	}
+
+	[Test]
+	public async Task LeaveOrganization_WithUnknownOrganizationId_RespondsNotFound()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+
+		var response = await client.PostAsync($"v1/organization/{Guid.NewGuid()}/leave", null);
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
+	}
 }
 
 public static class ClientOrganizationMemberExtensions
