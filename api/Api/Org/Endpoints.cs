@@ -48,7 +48,12 @@ public static class Organizations
 			return TypedResults.ValidationProblem(errors);
 		}
 
-		var organizations = session.Query<Model.Organization>();
+		IQueryable<Model.Organization> organizations = session.Query<Model.Organization>();
+		if (!string.IsNullOrWhiteSpace(query.Search))
+		{
+			organizations = organizations.Where(o => o.Name.Contains(query.Search, StringComparison.OrdinalIgnoreCase));
+		}
+
 		var sorted = sortDescending
 			? organizations.OrderByDescending(o => o.Name).ThenBy(o => o.Id)
 			: organizations.OrderBy(o => o.Name).ThenBy(o => o.Id);
@@ -127,7 +132,7 @@ public sealed record UpdateOrganizationRequest
 
 /// <summary>Query parameters for listing organizations, page-based and sortable by name.
 /// All properties are optional in the query string; unset values fall back to their defaults
-/// (page 1, page size 20, ascending) in the handler.</summary>
+/// (page 1, page size 20, ascending, unfiltered) in the handler.</summary>
 public sealed record ListOrganizationsRequest
 {
 	public int? Page { get; init; }
@@ -135,4 +140,7 @@ public sealed record ListOrganizationsRequest
 	public int? PageSize { get; init; }
 
 	public bool? SortDescending { get; init; }
+
+	/// <summary>Case-insensitive substring match against the organization name. Unset or blank means no filtering.</summary>
+	public string? Search { get; init; }
 }

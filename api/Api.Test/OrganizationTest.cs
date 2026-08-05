@@ -100,6 +100,34 @@ public sealed class OrganizationTest
 	}
 
 	[Test]
+	public async Task Organization_List_FiltersBySearchTerm()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+
+		var match = await client.CreateOrganization($"SearchableApple-{Guid.NewGuid()}");
+		var nonMatch = await client.CreateOrganization($"Banana-{Guid.NewGuid()}");
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
+
+		var page = await client.GetOrganizations("?search=SearchableApple");
+
+		await Assert.That(page.Data.Any(o => o.Id == match.Id)).IsTrue();
+		await Assert.That(page.Data.Any(o => o.Id == nonMatch.Id)).IsFalse();
+	}
+
+	[Test]
+	public async Task Organization_List_SearchIsCaseInsensitive()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+
+		var match = await client.CreateOrganization($"CaseTest-{Guid.NewGuid()}");
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
+
+		var page = await client.GetOrganizations("?search=casetest");
+
+		await Assert.That(page.Data.Any(o => o.Id == match.Id)).IsTrue();
+	}
+
+	[Test]
 	[Arguments("?page=0")]
 	[Arguments("?page=-1")]
 	public async Task Organization_List_WithInvalidPage_RespondsBadRequest(string query)
