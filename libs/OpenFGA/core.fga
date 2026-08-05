@@ -1,0 +1,20 @@
+module core
+
+type user
+
+type system
+  relations
+    define admin: [user]
+
+type organization
+  relations
+	define system: [system]
+    define member: [user]
+    define admin: [user] or admin from system
+
+    define can_add: admin
+    define can_view: member or admin
+
+type group
+  relations
+    define member: [user]
