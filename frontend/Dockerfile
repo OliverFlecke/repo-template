@@ -7,12 +7,15 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY ["*.props", "."]
-COPY ["api/Api/Api.csproj", "Api/"]
-RUN dotnet restore "Api/Api.csproj"
+COPY ["libs/OpenFGA/Api.OpenFGA.csproj", "libs/OpenFGA/"]
+COPY ["api/Api/Api.csproj", "api/Api/"]
+RUN dotnet restore "api/Api/Api.csproj"
 
-COPY api/ .
-WORKDIR "/src/Api"
-RUN dotnet build "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
+# Copy everything else and build
+COPY libs/ libs/
+COPY api/ api/
+WORKDIR "/src/"
+RUN dotnet build "api/Api/Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
 
 # Build frontend
 FROM node:26.5-alpine3.24 AS base
