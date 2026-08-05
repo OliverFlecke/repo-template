@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Api.Auth;
 using Api.Common;
 using Api.Config;
+using Api.OpenApi;
 using Api.OpenFGA;
 using Api.Org.Endpoint;
 using Api.Org.Response;
@@ -57,6 +58,7 @@ builder.Services.ConfigureHttpJsonOptions(opts =>
 builder.Services.AddOpenApi("v1", options =>
 {
 	options.ShouldInclude = _ => true;
+	options.AddDocumentTransformer<BearerSecurityDocumentTransformer>();
 });
 builder.Services.AddProblemDetails();
 
