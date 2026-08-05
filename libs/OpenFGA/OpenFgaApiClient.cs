@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Api.OpenFGA;
 
-sealed class OpenFgaApiClient(
+public sealed class OpenFgaApiClient(
 	ILogger<OpenFgaApiClient> logger,
 	OpenFgaConfig config,
 	HttpClient http
@@ -63,6 +63,51 @@ sealed class OpenFgaApiClient(
 		return await response.Content.ReadFromJsonAsync<FgaResult>(
 			Json, cancellationToken: cancellationToken);
 	}
+
+	/// <summary>
+	/// Write or delete a relationship tuple between a user and an object.
+	/// </summary>
+	/// <param name="user">The user the relationship applies to.</param>
+	/// <param name="relation">The relationship to write or delete.</param>
+	/// <param name="objectKind">The kind of object the relationship applies to.</param>
+	/// <param name="objectId">The ID of the object the relationship applies to.</param>
+	/// <param name="delete">Whether to delete the tuple instead of writing it.</param>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "All types - FgaWriteRequest and FgaTupleKeys and nested types - are included in the generated code for JsonSerializer.")]
+	[UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
+	public async Task Write(
+		string user,
+		string relation,
+		string objectKind,
+		string objectId,
+		bool delete = false,
+		CancellationToken cancellationToken = default
+	)
+	{
+		logger.LogInformation("{Action} tuple for user '{User}' with relation {Relation} on {ObjectKind}:{ObjectId}",
+			delete ? "Deleting" : "Writing", user, relation, objectKind, objectId);
+
+		var tuple = new FgaTuple
+		{
+			User = $"user:{user}",
+			Relation = relation,
+			Object = $"{objectKind}:{objectId}",
+		};
+		var request = new FgaWriteRequest
+		{
+			AuthorizationModelId = config.ModelId,
+			Writes = delete ? null : new FgaTupleKeys { TupleKeys = [tuple] },
+			Deletes = delete ? new FgaTupleKeys { TupleKeys = [tuple] } : null,
+		};
+		var response = await http.PostAsJsonAsync(
+			$"/stores/{config.StoreId}/write",
+			request,
+			Json,
+			cancellationToken
+		);
+
+		response.EnsureSuccessStatusCode();
+	}
 }
 
 public sealed record FgaCheckRequest
@@ -90,7 +135,21 @@ public sealed record FgaResult
 	public required bool Allowed { get; init; }
 }
 
+public sealed record FgaWriteRequest
+{
+	public required string AuthorizationModelId { get; init; }
+	public FgaTupleKeys? Writes { get; init; }
+	public FgaTupleKeys? Deletes { get; init; }
+}
+
+public sealed record FgaTupleKeys
+{
+	public required IReadOnlyList<FgaTuple> TupleKeys { get; init; }
+}
+
 [JsonSerializable(typeof(FgaCheckRequest))]
 [JsonSerializable(typeof(FgaTuple))]
 [JsonSerializable(typeof(FgaResult))]
+[JsonSerializable(typeof(FgaWriteRequest))]
+[JsonSerializable(typeof(FgaTupleKeys))]
 partial class FgaClientJsonSerializerContext : JsonSerializerContext { }

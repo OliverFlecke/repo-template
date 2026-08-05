@@ -13,6 +13,10 @@ public sealed class AuthTest
 	[Arguments("POST", "v1/admin/organization")]
 	[Arguments("PATCH", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
 	[Arguments("DELETE", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("GET", "v1/organization")]
+	[Arguments("POST", "v1/organization")]
+	[Arguments("POST", "v1/organization/00000000-0000-0000-0000-000000000000/member")]
+	[Arguments("DELETE", "v1/organization/00000000-0000-0000-0000-000000000000/member/some-user")]
 	public async Task Endpoint_WithoutToken_RespondsUnauthorized(string method, string path)
 	{
 		var client = App.CreateClient();
@@ -43,6 +47,21 @@ public sealed class AuthTest
 	public async Task Endpoint_WhenUserIsNotAdmin_RespondsForbidden(string method, string path)
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject: "not-an-admin");
+
+		using var request = new HttpRequestMessage(new HttpMethod(method), path);
+		var response = await client.SendAsync(request);
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.Forbidden);
+	}
+
+	[Test]
+	[Arguments("POST", "v1/organization/00000000-0000-0000-0000-000000000000/member")]
+	[Arguments("DELETE", "v1/organization/00000000-0000-0000-0000-000000000000/member/some-user")]
+	public async Task Endpoint_WhenUserCannotAddToOrganization_RespondsForbidden(string method, string path)
+	{
+		var subject = Guid.NewGuid().ToString();
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		App.OpenFga.MockCheck(subject, "can_add", "organization", "00000000-0000-0000-0000-000000000000", allowed: false);
 
 		using var request = new HttpRequestMessage(new HttpMethod(method), path);
 		var response = await client.SendAsync(request);

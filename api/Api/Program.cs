@@ -110,7 +110,17 @@ else
 
 builder.Host.UseWolverine(opts =>
 	{
+		// ApplicationAssembly is a process-wide static pinned by whichever Wolverine host starts
+		// first in the process (see Wolverine's ApplicationAssemblyReuseWarning / GH-3521). Set it
+		// explicitly rather than relying on calling-assembly inference, since the test host builds
+		// this same Program via reflection (WebApplicationFactory<Program>) and can otherwise pin
+		// the wrong assembly, causing handler discovery to silently find nothing ("No routes can
+		// be determined for Envelope ...").
+		opts.ApplicationAssembly = typeof(Program).Assembly;
 		opts.CodeGeneration.TypeLoadMode = TypeLoadMode.Static;
+		// OpenFgaApiClient is registered via AddHttpClient<T>, an opaque factory Wolverine's
+		// codegen can't inline-construct, so it must be resolved via service location instead.
+		opts.CodeGeneration.AlwaysUseServiceLocationFor<OpenFgaApiClient>();
 		opts.Policies.UseDurableInboxOnAllListeners();
 		opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
 	});
@@ -142,12 +152,18 @@ var adminEndpoints = app.MapGroup("v1/admin")
 
 adminEndpoints.MapGroup("organization").MapOrganizationEndpoints();
 
+var organizationEndpoints = app.MapGroup("v1/organization");
+organizationEndpoints.MapOrganizationMemberEndpoints();
+
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
 await app.RunJasperFxCommands(args);
 
 [JsonSerializable(typeof(Organization))]
 [JsonSerializable(typeof(PagedResponse<Organization>))]
+[JsonSerializable(typeof(OrganizationMembership))]
+[JsonSerializable(typeof(IReadOnlyList<OrganizationMembership>))]
+[JsonSerializable(typeof(Api.Org.Model.OrganizationRole))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

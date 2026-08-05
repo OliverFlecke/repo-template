@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using TUnit.Core.Interfaces;
 
 using WireMock.Matchers;
@@ -25,6 +27,14 @@ public sealed class OpenFgaMock : IAsyncInitializer, IAsyncDisposable
 			.AtPriority(1000)
 			.RespondWith(Response.Create().WithStatusCode(200).WithBodyAsJson(new { allowed = false }));
 
+		// Same reasoning as the /check catch-all above: any unmocked /write call should
+		// succeed by default rather than 500, since most tests don't care about the exact
+		// tuple written and only assert on it via WasWriteCalled when they do.
+		server
+			.Given(Request.Create().WithPath(p => p.EndsWith("/write")).UsingPost())
+			.AtPriority(1000)
+			.RespondWith(Response.Create().WithStatusCode(200).WithBodyAsJson(new { }));
+
 		return Task.CompletedTask;
 	}
 
@@ -44,6 +54,53 @@ public sealed class OpenFgaMock : IAsyncInitializer, IAsyncDisposable
 					},
 				})))
 			.RespondWith(Response.Create().WithStatusCode(200).WithBodyAsJson(new { allowed }));
+	}
+
+	/// <summary>Polls the recorded requests for a /write call that wrote (or deleted) the given
+	/// tuple. Wolverine dispatches the handler that triggers this call asynchronously relative to
+	/// the HTTP response that appended the triggering event, so this can't be checked immediately.</summary>
+	public async Task<bool> WasWriteCalled(
+		string user, string relation, string objectKind, string objectId,
+		bool delete = false, TimeSpan? timeout = null)
+	{
+		var expectedUser = $"user:{user}";
+		var expectedObject = $"{objectKind}:{objectId}";
+		var key = delete ? "deletes" : "writes";
+		var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(5));
+
+		while (true)
+		{
+			var matched = server.LogEntries.Any(entry =>
+			{
+				if (entry.RequestMessage is not { Path: var path, Body: { } body } || !path.EndsWith("/write"))
+				{
+					return false;
+				}
+
+				using var doc = JsonDocument.Parse(body);
+				if (!doc.RootElement.TryGetProperty(key, out var tupleKeys) || tupleKeys.ValueKind != JsonValueKind.Object)
+				{
+					return false;
+				}
+
+				return tupleKeys.GetProperty("tuple_keys").EnumerateArray().Any(t =>
+					t.GetProperty("user").GetString() == expectedUser &&
+					t.GetProperty("relation").GetString() == relation &&
+					t.GetProperty("object").GetString() == expectedObject);
+			});
+
+			if (matched)
+			{
+				return true;
+			}
+
+			if (DateTime.UtcNow >= deadline)
+			{
+				return false;
+			}
+
+			await Task.Delay(50);
+		}
 	}
 
 	public ValueTask DisposeAsync()
