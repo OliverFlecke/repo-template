@@ -57,6 +57,7 @@ builder.Services.AddOpenApi("v1", options =>
 {
 	options.ShouldInclude = _ => true;
 });
+builder.Services.AddProblemDetails();
 
 builder.SetupAuthentication();
 builder.Services.AddHealthChecks();

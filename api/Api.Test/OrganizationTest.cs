@@ -83,7 +83,7 @@ public sealed class OrganizationTest
 		var page = await client.GetOrganizations("?page=1&pageSize=1");
 
 		await Assert.That(page.Data.Count).IsEqualTo(1);
-		await Assert.That(page.PageNumber).IsEqualTo(1);
+		await Assert.That(page.Page).IsEqualTo(1);
 		await Assert.That(page.PageSize).IsEqualTo(1);
 	}
 

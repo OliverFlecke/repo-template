@@ -58,9 +58,9 @@ public static class Organizations
 		return TypedResults.Ok(new PagedResponse<Organization>
 		{
 			Data = [.. pagedResult.Select(o => new Organization { Id = o.Id, Name = o.Name })],
-			PageNumber = pagedResult.PageNumber,
+			Page = pagedResult.PageNumber,
 			PageSize = pagedResult.PageSize,
-			TotalItemCount = pagedResult.TotalItemCount,
+			Total = pagedResult.TotalItemCount,
 			PageCount = pagedResult.PageCount,
 		});
 	}
