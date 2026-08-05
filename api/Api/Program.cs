@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Api.Auth;
 using Api.Common;
 using Api.Config;
+using Api.OpenFGA;
 using Api.Org.Endpoint;
 using Api.Org.Response;
 
@@ -132,7 +133,12 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGroup("organization").MapOrganizationEndpoints();
+var adminEndpoints = app.MapGroup("v1/admin")
+	// .RequireAuthorization(new OpenFgaAuthorizationRequirement("admin", "system", "core"))
+	;
+
+adminEndpoints.MapGroup("organization").MapOrganizationEndpoints();
+
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
 await app.RunJasperFxCommands(args);

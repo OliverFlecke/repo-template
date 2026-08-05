@@ -9,10 +9,10 @@ public sealed class AuthTest
 	public required WebApplicationFactory App { get; init; }
 
 	[Test]
-	[Arguments("GET", "/organization")]
-	[Arguments("POST", "/organization")]
-	[Arguments("PATCH", "/organization/00000000-0000-0000-0000-000000000000")]
-	[Arguments("DELETE", "/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("GET", "v1/admin/organization")]
+	[Arguments("POST", "v1/admin/organization")]
+	[Arguments("PATCH", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("DELETE", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
 	public async Task Endpoint_WithoutToken_RespondsUnauthorized(string method, string path)
 	{
 		var client = App.CreateClient();

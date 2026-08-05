@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -11,16 +13,22 @@ namespace Api.OpenFGA;
 /// </summary>
 /// <param name="relation">The relationship to check.</param>
 /// <param name="object">The object to check.</param>
+/// <param name="objectId">
+/// The ID of the object to check. If not provided, the ID will be looked up
+/// from the route parameters.
+/// </param>
 /// <param name="objectIdKey">The key in the route values to use for the object ID.</param>
 public sealed class OpenFgaAuthorizationRequirement(
 	string relation,
 	string @object,
+	string? objectId = default,
 	string objectIdKey = "id")
-	: AuthorizeAttribute, IAuthorizationRequirement, IAuthorizationRequirementData
+		: AuthorizeAttribute, IAuthorizationRequirement, IAuthorizationRequirementData
 {
 	public string Relation { get; } = relation;
 	public string Object { get; } = @object;
 	public string ObjectIdKey { get; } = objectIdKey;
+	public string? ObjectId { get; } = objectId;
 
 	public IEnumerable<IAuthorizationRequirement> GetRequirements() { yield return this; }
 }
@@ -41,19 +49,22 @@ sealed class OpenFgaAuthorizationHandler(
 		OpenFgaAuthorizationRequirement req
 	)
 	{
-		var user = context.User.Identity?.Name;
+		var user = context.User.Claims.First(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value;
+		if (user is null) { return; }
+
 		logger.LogDebug("Checking authorization for user {User}. Requirement: {Relation} -> {ObjectType}",
 			user, req.Relation, req.Object);
 
 		var http = httpContextAccessor.HttpContext;
-		if (user is null
-			|| http is null
-			|| !http.Request.RouteValues.TryGetValue(req.ObjectIdKey, out var objectKey)
-		)
+		if (user is null || http is null)
 		{
 			return;
 		}
-		var objectId = objectKey?.ToString();
+
+		var objectId = req.ObjectId ??
+			(http.Request.RouteValues.TryGetValue(req.ObjectIdKey, out var objectKey)
+			? objectKey?.ToString() : null);
+
 		if (objectId is null) { return; }
 
 		logger.LogDebug("Checking authorization for user {User} has {Relation} with {ObjectType}:{ObjectId}",
