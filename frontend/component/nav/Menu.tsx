@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "react-oidc-context";
 import { useLogout } from "@/component/auth";
 import styles from "./Menu.module.css";
@@ -14,6 +15,7 @@ export default function Menu() {
 
 			{user ? (
 				<div>
+					<Link href="/admin">Admin</Link>
 					<div>{user.profile.name}</div>
 					<button onClick={logout}>Log out</button>
 				</div>

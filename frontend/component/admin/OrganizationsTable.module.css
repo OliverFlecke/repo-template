@@ -1,0 +1,33 @@
+.table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.table th,
+.table td {
+	text-align: left;
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid var(--button-secondary-border);
+}
+
+.table th button {
+	background: none;
+	border: none;
+	font: inherit;
+	font-weight: bold;
+	cursor: pointer;
+	color: inherit;
+	padding: 0;
+}
+
+.empty {
+	text-align: center;
+	color: var(--text-secondary);
+}
+
+.pagination {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-top: 1rem;
+}
