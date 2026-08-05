@@ -13,4 +13,11 @@ public sealed record Organization
 		Id = e.Id,
 		Name = e.Name,
 	};
+
+	public static Organization Apply(OrganizationUpdated e, Organization current) => current with
+	{
+		Name = e.Name,
+	};
+
+	public static bool ShouldDelete(OrganizationDeleted _) => true;
 }

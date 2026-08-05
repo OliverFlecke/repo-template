@@ -1,4 +1,5 @@
 ﻿using Marten;
+using Marten.Events.Daemon.Coordination;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -20,11 +21,17 @@ public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncI
 	[ClassDataSource<InMemoryDatabase>(Shared = SharedType.PerTestSession)]
 	public required InMemoryDatabase Database { get; init; } = null!;
 
-	public Task InitializeAsync()
+	public async Task InitializeAsync()
 	{
 		_ = Server;
 
-		return Task.CompletedTask;
+		// MartenDaemonModeIsSolo() (below) swaps in ExplicitProjectionCoordinator, which — unlike
+		// the normal auto-starting coordinator — never starts a database's daemon on its own.
+		// DaemonForMainDatabase() only constructs the (not-yet-running) daemon; StartAllAsync()
+		// is what actually kicks off its shards. Without this, every test races an unstarted
+		// daemon and any wait for non-stale projection data times out.
+		var daemon = Services.GetRequiredService<IProjectionCoordinator>().DaemonForMainDatabase();
+		await daemon.StartAllAsync();
 	}
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -43,7 +50,6 @@ public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncI
 		builder.ConfigureServices((host, services) =>
 		{
 			services.UseWolverineSoloMode();
-			services.DisableAllWolverineMessagePersistence();
 			services.DisableAllExternalWolverineTransports();
 			services.MartenDaemonModeIsSolo();
 

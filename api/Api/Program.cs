@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 
 using Api.Auth;
+using Api.Common;
 using Api.Config;
 using Api.Org.Endpoint;
 using Api.Org.Response;
@@ -136,7 +137,7 @@ app.MapHealthChecks("/healthz").AllowAnonymous();
 await app.RunJasperFxCommands(args);
 
 [JsonSerializable(typeof(Organization))]
-[JsonSerializable(typeof(List<Organization>))]
+[JsonSerializable(typeof(PagedResponse<Organization>))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }
