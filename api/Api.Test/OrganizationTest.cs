@@ -18,7 +18,7 @@ public sealed class OrganizationTest
 	[Test]
 	public async Task Organization_Create_RespondWithOk200()
 	{
-		var client = App.CreateClient();
+		var client = App.CreateClient().WithAuthenticatedUser();
 
 		var body = new CreateOrganizationRequest { Name = "Apple" };
 

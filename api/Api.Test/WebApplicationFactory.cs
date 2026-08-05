@@ -1,7 +1,10 @@
 ﻿using Marten;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 using Testcontainers.PostgreSql;
 
@@ -43,6 +46,24 @@ public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncI
 			services.DisableAllWolverineMessagePersistence();
 			services.DisableAllExternalWolverineTransports();
 			services.MartenDaemonModeIsSolo();
+
+			// Bypass the configured Authority so tests can validate tokens against a fixed key
+			// instead of needing a live IdP.
+			services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+			{
+				options.RequireHttpsMetadata = false;
+				options.Authority = AuthFactory.Issuer;
+				options.Audience = AuthFactory.Audience;
+				options.TokenValidationParameters = new TokenValidationParameters
+				{
+					ValidateAudience = true,
+					ValidateLifetime = true,
+					ValidateIssuerSigningKey = true,
+					IssuerSigningKey = AuthFactory.TestSigningKey,
+					ValidIssuer = AuthFactory.Issuer,
+					ValidAudience = AuthFactory.Audience,
+				};
+			});
 		});
 	}
 }
@@ -54,5 +75,10 @@ public class InMemoryDatabase : IAsyncInitializer, IAsyncDisposable
 		.Build();
 
 	public async Task InitializeAsync() => await Container.StartAsync();
-	public async ValueTask DisposeAsync() => await Container.DisposeAsync();
+
+	public async ValueTask DisposeAsync()
+	{
+		GC.SuppressFinalize(this);
+		await Container.DisposeAsync();
+	}
 }

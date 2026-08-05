@@ -19,3 +19,6 @@ dotnet_sort_system_directives_first = true
 dotnet_diagnostic.CA1873.severity = none
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.IDE0130.severity = none
+
+# IDE0040: Add accessibility modifiers
+dotnet_style_require_accessibility_modifiers = omit_if_default

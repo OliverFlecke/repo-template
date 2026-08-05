@@ -4,8 +4,10 @@
   </PropertyGroup>
   <!-- Production dependencies -->
   <ItemGroup>
+    <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="Marten" Version="9.20.0" />
     <PackageVersion Include="Marten.NodaTime" Version="9.20.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <!-- Version 3.* is not compatible with dotnet 10. Remaining on 2.* for now. -->
     <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.10" />

@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 
+using Api.Auth;
 using Api.Config;
 using Api.Org.Endpoint;
 using Api.Org.Response;
@@ -13,6 +14,8 @@ using JasperFx.Events.Projections;
 using Marten;
 using Marten.NodaTimePlugin;
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
 using NodaTime;
@@ -54,6 +57,7 @@ builder.Services.AddOpenApi("v1", options =>
 	options.ShouldInclude = _ => true;
 });
 
+builder.SetupAuthentication();
 builder.Services.AddHealthChecks();
 
 builder.Services
@@ -116,15 +120,18 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-	app.MapOpenApi();
+	app.MapOpenApi().AllowAnonymous();
 	app.UseCors(opts => opts
 		.AllowAnyHeader()
 		.AllowAnyOrigin()
 		.AllowAnyMethod());
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapGroup("organization").MapOrganizationEndpoints();
-app.MapHealthChecks("/healthz");
+app.MapHealthChecks("/healthz").AllowAnonymous();
 
 await app.RunJasperFxCommands(args);
 
