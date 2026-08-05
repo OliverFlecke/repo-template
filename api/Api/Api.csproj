@@ -34,4 +34,8 @@
 	<ItemGroup Condition="'$(Configuration)' == 'Debug'">
 		<PackageReference Include="WolverineFx.RuntimeCompilation" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../libs/OpenFGA/Api.OpenFGA.csproj" />
+	</ItemGroup>
 </Project>
