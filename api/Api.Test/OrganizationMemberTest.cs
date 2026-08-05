@@ -36,11 +36,11 @@ public sealed class OrganizationMemberTest
 
 		var response = await client.PostAsJsonAsync("v1/organization", new CreateOrganizationRequest { Name = "Acme" });
 		var org = (await response.Content.ReadFromJsonAsync<Org.Response.Organization>())!;
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
 		using var scope = App.Services.CreateScope();
 		var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-		var projected = await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id))
-			.WaitsFor(x => x.IsNotNull(), timeout: TimeSpan.FromSeconds(5)).And.IsNotNull();
+		var projected = await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id)).IsNotNull();
 
 		await Assert.That(projected.Members[subject]).IsEqualTo(OrganizationRole.Admin);
 
@@ -77,11 +77,11 @@ public sealed class OrganizationMemberTest
 			new AddMemberRequest { UserId = newMember, Role = OrganizationRole.Member });
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
 		using var scope = App.Services.CreateScope();
 		var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-		var projected = await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id))
-			.WaitsFor(x => x.IsNotNull(), timeout: TimeSpan.FromSeconds(5)).And.IsNotNull();
+		var projected = await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id)).IsNotNull();
 
 		await Assert.That(projected.Members[newMember]).IsEqualTo(OrganizationRole.Member);
 
@@ -127,48 +127,20 @@ public sealed class OrganizationMemberTest
 		await client.PostAsJsonAsync(
 			$"v1/organization/{org.Id}/member",
 			new AddMemberRequest { UserId = member, Role = OrganizationRole.Member });
-
-		using (var scope = App.Services.CreateScope())
-		{
-			var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-			var withMember = await WaitForProjection(session, org.Id, o => o?.Members.ContainsKey(member) == true);
-			await Assert.That(withMember).IsNotNull();
-		}
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
 		var response = await client.DeleteAsync($"v1/organization/{org.Id}/member/{member}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
-		using (var scope = App.Services.CreateScope())
-		{
-			var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-			var withoutMember = await WaitForProjection(session, org.Id, o => o is not null && !o.Members.ContainsKey(member));
-			await Assert.That(withoutMember).IsNotNull();
-		}
+		using var scope = App.Services.CreateScope();
+		var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
+		var projected = await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id)).IsNotNull();
+		await Assert.That(projected.Members.ContainsKey(member)).IsFalse();
 
 		var deletedMemberTuple = await App.OpenFga.WasWriteCalled(member, "member", "organization", org.Id.ToString(), delete: true);
 		await Assert.That(deletedMemberTuple).IsTrue();
-	}
-
-	/// <summary>Polls the async Marten projection until it satisfies the given condition. Used
-	/// instead of the simpler `Assert.That(...).WaitsFor(x => x.IsNotNull(), ...)` pattern (see
-	/// OrganizationTest.cs) when the condition depends on aggregate state beyond mere existence,
-	/// since the aggregate can already exist from an earlier event while a later one is still
-	/// catching up.</summary>
-	static async Task<Org.Model.Organization?> WaitForProjection(
-		IDocumentSession session, Guid id, Func<Org.Model.Organization?, bool> condition, TimeSpan? timeout = null)
-	{
-		var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(5));
-		while (true)
-		{
-			var org = await session.Events.FetchLatest<Org.Model.Organization>(id);
-			if (condition(org) || DateTime.UtcNow >= deadline)
-			{
-				return org;
-			}
-
-			await Task.Delay(50);
-		}
 	}
 
 	[Test]
@@ -204,11 +176,11 @@ public sealed class OrganizationMemberTest
 		var response = await client.PostAsync($"v1/organization/{org.Id}/leave", null);
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
 		using var scope = App.Services.CreateScope();
 		var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-		await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id))
-			.WaitsFor(x => x.IsNull(), timeout: TimeSpan.FromSeconds(5));
+		await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id)).IsNull();
 
 		var revokedAdminTuple = await App.OpenFga.WasWriteCalled(subject, "admin", "organization", org.Id.ToString(), delete: true);
 		await Assert.That(revokedAdminTuple).IsTrue();
@@ -224,26 +196,19 @@ public sealed class OrganizationMemberTest
 		await client.PostAsJsonAsync(
 			$"v1/organization/{org.Id}/member",
 			new AddMemberRequest { UserId = otherMember, Role = OrganizationRole.Member });
-
-		using (var scope = App.Services.CreateScope())
-		{
-			var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-			var withBoth = await WaitForProjection(session, org.Id, o => o?.Members.Count == 2);
-			await Assert.That(withBoth).IsNotNull();
-		}
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
 		var otherClient = App.CreateClient().WithAuthenticatedUser(otherMember);
 		var response = await otherClient.PostAsync($"v1/organization/{org.Id}/leave", null);
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
+		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
-		using (var scope = App.Services.CreateScope())
-		{
-			var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-			var afterLeave = await WaitForProjection(session, org.Id, o => o is not null && !o.Members.ContainsKey(otherMember));
-			await Assert.That(afterLeave).IsNotNull();
-			await Assert.That(afterLeave!.Members.ContainsKey(subject)).IsTrue();
-		}
+		using var scope = App.Services.CreateScope();
+		var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
+		var afterLeave = await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id)).IsNotNull();
+		await Assert.That(afterLeave.Members.ContainsKey(otherMember)).IsFalse();
+		await Assert.That(afterLeave.Members.ContainsKey(subject)).IsTrue();
 
 		var revokedMemberTuple = await App.OpenFga.WasWriteCalled(otherMember, "member", "organization", org.Id.ToString(), delete: true);
 		await Assert.That(revokedMemberTuple).IsTrue();
