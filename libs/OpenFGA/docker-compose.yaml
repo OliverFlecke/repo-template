@@ -2,7 +2,7 @@
 name: openfga
 services:
   migrate:
-    image: openfga/openfga:1.18
+    image: openfga/openfga:v1.18
     container_name: migrate
     depends_on:
       postgres:
@@ -15,7 +15,7 @@ services:
     command: migrate
 
   openfga:
-    image: openfga/openfga:1.18
+    image: openfga/openfga:v1.18
     container_name: openfga
     depends_on:
       migrate:
