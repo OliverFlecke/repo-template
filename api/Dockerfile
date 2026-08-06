@@ -11,14 +11,24 @@ RUN apk update && \
 
 WORKDIR /src
 
-COPY ["*.props", "."]
+COPY ["*.props", "/"]
 COPY ["api/Api/Api.csproj", "Api/"]
+COPY ["libs/OpenFGA/Api.OpenFGA.csproj", "/libs/OpenFGA/"]
 RUN dotnet restore "Api/Api.csproj"
 
 # Copy everything else and build
 COPY api/ .
+COPY libs/ /libs/
 WORKDIR "/src/Api"
-RUN dotnet build "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
+
+# Pre-generate Wolverine's handler/routing code (runs its own implicit build to the
+# default bin/ output first), then do the real build. Release builds don't reference
+# WolverineFx.RuntimeCompilation (see Api.csproj), so without this, message routing for
+# locally-published messages (e.g. IMartenOutbox.PublishAsync) silently resolves to
+# "No Routes" and those messages are dropped instead of reaching their handlers. Codegen
+# must run before the real build so the generated files are on disk to be picked up by it.
+RUN dotnet run -c "${BUILD_CONFIGURATION}" -- codegen write && \
+	dotnet build "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/publish /p:PublishAOT=true

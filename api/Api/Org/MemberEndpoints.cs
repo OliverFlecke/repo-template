@@ -58,6 +58,8 @@ public static class OrganizationMembers
 			Name = body.Name,
 		};
 
+		outbox.Enroll(session);
+
 		var memberAdded = new OrganizationMemberAdded(org.Id, currentUser.Id, Model.OrganizationRole.Admin);
 		session.Events.StartStream<Model.Organization>(org.Id, new OrganizationCreated(org.Id, org.Name), memberAdded);
 		await outbox.PublishAsync(memberAdded);
@@ -72,6 +74,8 @@ public static class OrganizationMembers
 		[FromServices] IDocumentSession session,
 		[FromServices] IMartenOutbox outbox)
 	{
+		outbox.Enroll(session);
+
 		var stream = await session.Events.FetchForWriting<Model.Organization>(id);
 		if (stream.Aggregate is null)
 		{
@@ -94,6 +98,8 @@ public static class OrganizationMembers
 		[FromServices] IDocumentSession session,
 		[FromServices] IMartenOutbox outbox)
 	{
+		outbox.Enroll(session);
+
 		var stream = await session.Events.FetchForWriting<Model.Organization>(id);
 		if (stream.Aggregate is null)
 		{
