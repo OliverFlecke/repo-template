@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -157,13 +158,24 @@ organizationEndpoints.MapOrganizationMemberEndpoints();
 
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
-await app.RunJasperFxCommands(args);
+await RunJasperFxCommandsAotSafe(app, args);
+
+[UnconditionalSuppressMessage("Trimming", "IL2026",
+	Justification = "Reflective JasperFx CLI command dispatch (db-apply, codegen, describe, etc.) is dev-time tooling only. The published container always runs with no arguments, so this branch just starts the host and never exercises the reflective path.")]
+[UnconditionalSuppressMessage("AOT", "IL3050",
+	Justification = "Same as IL2026: only reachable via dev-time CLI args, never in the published AOT binary's actual run path.")]
+static Task RunJasperFxCommandsAotSafe(WebApplication app, string[] args) => app.RunJasperFxCommands(args);
 
 [JsonSerializable(typeof(Organization))]
 [JsonSerializable(typeof(PagedResponse<Organization>))]
 [JsonSerializable(typeof(OrganizationMembership))]
 [JsonSerializable(typeof(IReadOnlyList<OrganizationMembership>))]
 [JsonSerializable(typeof(Api.Org.Model.OrganizationRole))]
+[JsonSerializable(typeof(CreateOrganizationRequest))]
+[JsonSerializable(typeof(UpdateOrganizationRequest))]
+[JsonSerializable(typeof(AddMemberRequest))]
+[JsonSerializable(typeof(int?))]
+[JsonSerializable(typeof(bool?))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

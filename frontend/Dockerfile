@@ -30,7 +30,7 @@ RUN npm install -g pnpm@11
 COPY frontend/package.json frontend/pnpm-*.yaml ./
 RUN pnpm install --frozen-lockfile --yes
 
-COPY --from=api-builder /src/Api/openapi.json ../api/Api/openapi.json
+COPY --from=api-builder /src/api/Api/openapi.json ../api/Api/openapi.json
 COPY frontend/ .
 
 RUN OUTPUT_MODE=standalone pnpm build

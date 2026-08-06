@@ -25,11 +25,12 @@ RUN dotnet build "api/Api/Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
 FROM build AS publish
 RUN dotnet publish "api/Api/Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/publish /p:PublishAOT=true
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine3.24 AS final
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine3.24 AS final
 WORKDIR /app
 
-RUN adduser --disabled-password --gecos "" appuser && \
-    chown -R appuser /app
+RUN apk add curl=8.21.0-r0 --no-cache && \
+	adduser --disabled-password --gecos "" appuser && \
+	chown -R appuser /app
 USER appuser
 
 COPY --from=publish /app/publish .
@@ -37,4 +38,4 @@ COPY --from=publish /app/publish .
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
   CMD curl -f http://localhost:8080/healthz || exit 1
 
-ENTRYPOINT ["dotnet", "Api.dll"]
+ENTRYPOINT ["./Api"]

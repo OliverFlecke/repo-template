@@ -1,11 +1,11 @@
 "use client";
 
-import { getOrganizationOptions } from "@/api/@tanstack/react-query.gen";
+import { getOrganizationsAdminOptions } from "@/api/@tanstack/react-query.gen";
 import { useQuery } from "@tanstack/react-query";
 
 export default function List() {
 	const { data, isLoading } = useQuery({
-		...getOrganizationOptions(),
+		...getOrganizationsAdminOptions(),
 	});
 
 	if (isLoading) {
@@ -18,7 +18,7 @@ export default function List() {
 
 	return (
 		<ul>
-			{data.map((org) => (
+			{data.data.map((org) => (
 				<li key={org.name}>{org.name}</li>
 			))}
 		</ul>
