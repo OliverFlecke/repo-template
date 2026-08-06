@@ -1,0 +1,48 @@
+---
+name: openfga
+services:
+  migrate:
+    image: openfga/openfga:1.18
+    container_name: migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+    networks:
+      - openfga
+    command: migrate
+
+  openfga:
+    image: openfga/openfga:1.18
+    container_name: openfga
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+      - OPENFGA_LOG_FORMAT=json
+    ports:
+      - "127.0.0.1:6080:8080" # Needed for the http server
+      - "127.0.0.1:6081:8081" # Needed for the grpc server (if used)
+    networks:
+      - openfga
+    command: run
+
+  postgres:
+    image: postgres:18-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    networks:
+      - openfga
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+networks:
+  openfga:

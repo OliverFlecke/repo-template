@@ -12,22 +12,25 @@ RUN apk update && \
 WORKDIR /src
 
 COPY ["*.props", "."]
-COPY ["api/Api/Api.csproj", "Api/"]
-RUN dotnet restore "Api/Api.csproj"
+COPY ["libs/OpenFGA/Api.OpenFGA.csproj", "libs/OpenFGA/"]
+COPY ["api/Api/Api.csproj", "api/Api/"]
+RUN dotnet restore "api/Api/Api.csproj"
 
 # Copy everything else and build
-COPY api/ .
-WORKDIR "/src/Api"
-RUN dotnet build "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
+COPY libs/ libs/
+COPY api/ api/
+WORKDIR "/src/"
+RUN dotnet build "api/Api/Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/publish /p:PublishAOT=true
+RUN dotnet publish "api/Api/Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/publish /p:PublishAOT=true
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine3.24 AS final
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine3.24 AS final
 WORKDIR /app
 
-RUN adduser --disabled-password --gecos "" appuser && \
-    chown -R appuser /app
+RUN apk add curl=8.21.0-r0 --no-cache && \
+	adduser --disabled-password --gecos "" appuser && \
+	chown -R appuser /app
 USER appuser
 
 COPY --from=publish /app/publish .
@@ -35,4 +38,4 @@ COPY --from=publish /app/publish .
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
   CMD curl -f http://localhost:8080/healthz || exit 1
 
-ENTRYPOINT ["dotnet", "Api.dll"]
+ENTRYPOINT ["./Api"]
