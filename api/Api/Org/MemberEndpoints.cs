@@ -26,6 +26,7 @@ public static class OrganizationMembers
 			.RequireAuthorization(new OpenFgaAuthorizationRequirement("can_add", "organization"));
 		builder.MapDelete("/{id:guid}/member/{userId}", RemoveMember)
 			.RequireAuthorization(new OpenFgaAuthorizationRequirement("can_add", "organization"));
+		builder.MapPost("/{id:guid}/leave", LeaveOrganization);
 	}
 
 	static async Task<Ok<IReadOnlyList<OrganizationMembership>>> GetMyOrganizations(
@@ -113,6 +114,44 @@ public static class OrganizationMembers
 			await outbox.PublishAsync(memberRemoved);
 			await session.SaveChangesAsync();
 		}
+
+		return TypedResults.Ok();
+	}
+
+	/// <summary>Removes the current user from an organization. Only requires that the caller is
+	/// currently a member (no can_add relation needed, unlike AddMember/RemoveMember). If the
+	/// caller is the last member, the organization is deleted along with them.</summary>
+	static async Task<Results<Ok, NotFound, ForbidHttpResult>> LeaveOrganization(
+		Guid id,
+		[FromServices] IDocumentSession session,
+		[FromServices] IMartenOutbox outbox,
+		[FromServices] ICurrentUser currentUser)
+	{
+		outbox.Enroll(session);
+
+		var stream = await session.Events.FetchForWriting<Model.Organization>(id);
+		if (stream.Aggregate is null)
+		{
+			return TypedResults.NotFound();
+		}
+
+		if (!stream.Aggregate.Members.TryGetValue(currentUser.Id, out var role))
+		{
+			return TypedResults.Forbid();
+		}
+
+		var memberRemoved = new OrganizationMemberRemoved(id, currentUser.Id, role);
+		if (stream.Aggregate.Members.Count == 1)
+		{
+			stream.AppendMany(memberRemoved, new OrganizationDeleted(id));
+		}
+		else
+		{
+			stream.AppendOne(memberRemoved);
+		}
+
+		await outbox.PublishAsync(memberRemoved);
+		await session.SaveChangesAsync();
 
 		return TypedResults.Ok();
 	}

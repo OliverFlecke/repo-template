@@ -24,6 +24,7 @@ public static class Organizations
 		builder.MapDelete("/{id:guid}", DeleteOrganization);
 	}
 
+	[EndpointName("GetOrganizationsAdmin")]
 	static async Task<Results<Ok<PagedResponse<Organization>>, ValidationProblem>> GetOrganizations(
 		[AsParameters] ListOrganizationsRequest query,
 		[FromServices] IQuerySession session)

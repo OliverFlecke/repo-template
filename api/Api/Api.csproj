@@ -38,4 +38,24 @@
 	<ItemGroup>
 		<ProjectReference Include="../../libs/OpenFGA/Api.OpenFGA.csproj" />
 	</ItemGroup>
+
+	<!--
+		WarningsAsErrors above catches our own app code calling a
+		RequiresUnreferencedCode/RequiresDynamicCode API, at C# compile time (already
+		enforced by the time this target runs, during publish). The native AOT compiler
+		(ilc) reruns the same IL2xxx/IL3xxx analysis as a whole-program pass that also
+		covers Marten/Wolverine/Weasel internals we don't control and can't fix here; for
+		some of those, ilc reports the diagnostic under a category literally named "Trim
+		analysis error" even though it isn't fatal (ilc still emits a working object file);
+		MSBuild's generic Exec output scanning sees the word "error" in that category
+		and fails the build regardless of ilc's actual (zero) exit code. Clear
+		WarningsAsErrors and suppress those codes for ilc's own pass so this doesn't
+		hard-fail the publish; app code is unaffected since Roslyn already ran.
+	-->
+	<Target Name="RelaxIlcWarningsAsErrors" BeforeTargets="WriteIlcRspFileForCompilation">
+		<PropertyGroup>
+			<WarningsAsErrors></WarningsAsErrors>
+			<NoWarn>$(NoWarn);IL2026;IL2046;IL2055;IL2065;IL2067;IL2070;IL2072;IL2075;IL2090;IL2091;IL2111;IL3050;IL3051</NoWarn>
+		</PropertyGroup>
+	</Target>
 </Project>
