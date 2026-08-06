@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { getV1AdminOrganizationOptions } from "@/api/@tanstack/react-query.gen";
+import { getOrganizationsAdminOptions } from "@/api/@tanstack/react-query.gen";
 import CreateOrganizationDialog, {
 	type CreateOrganizationDialogHandle,
 } from "./CreateOrganizationDialog";
@@ -19,7 +19,7 @@ export default function OrganizationsPage() {
 	const dialogRef = useRef<CreateOrganizationDialogHandle>(null);
 
 	const { data, isLoading, isError } = useQuery({
-		...getV1AdminOrganizationOptions({
+		...getOrganizationsAdminOptions({
 			query: {
 				Page: page,
 				PageSize: PAGE_SIZE,

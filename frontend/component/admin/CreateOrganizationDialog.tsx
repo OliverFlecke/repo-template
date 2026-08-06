@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import {
-	getV1AdminOrganizationQueryKey,
+	getOrganizationsAdminQueryKey,
 	postV1AdminOrganizationMutation,
 } from "@/api/@tanstack/react-query.gen";
 import styles from "./CreateOrganizationDialog.module.css";
@@ -22,7 +22,7 @@ const CreateOrganizationDialog = forwardRef<CreateOrganizationDialogHandle>(
 			...postV1AdminOrganizationMutation(),
 			onSuccess: () => {
 				queryClient.invalidateQueries({
-					queryKey: getV1AdminOrganizationQueryKey(),
+					queryKey: getOrganizationsAdminQueryKey(),
 				});
 				setName("");
 				dialogRef.current?.close();
