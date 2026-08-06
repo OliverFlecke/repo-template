@@ -1,0 +1,36 @@
+name: Core tests
+model_file: fga.mod
+
+tuples:
+  - user: user:alice
+    relation: admin
+    object: system:core
+
+  - user: system:core
+    relation: system
+    object: organization:acme
+
+  - user: user:anne
+    relation: admin
+    object: organization:acme
+
+tests:
+  - name: Test
+    check:
+      - user: user:anne
+        object: organization:acme
+        assertions:
+          member: false
+          admin: true
+          can_add: true
+          can_view: true
+
+  - name: Test
+    check:
+      - user: user:alice
+        object: organization:acme
+        assertions:
+          member: false
+          admin: true
+          can_add: true
+          can_view: true

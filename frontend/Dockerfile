@@ -7,12 +7,15 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 COPY ["*.props", "."]
-COPY ["api/Api/Api.csproj", "Api/"]
-RUN dotnet restore "Api/Api.csproj"
+COPY ["libs/OpenFGA/Api.OpenFGA.csproj", "libs/OpenFGA/"]
+COPY ["api/Api/Api.csproj", "api/Api/"]
+RUN dotnet restore "api/Api/Api.csproj"
 
-COPY api/ .
-WORKDIR "/src/Api"
-RUN dotnet build "Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
+# Copy everything else and build
+COPY libs/ libs/
+COPY api/ api/
+WORKDIR "/src/"
+RUN dotnet build "api/Api/Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
 
 # Build frontend
 FROM node:26.5-alpine3.24 AS base
@@ -27,7 +30,7 @@ RUN npm install -g pnpm@11
 COPY frontend/package.json frontend/pnpm-*.yaml ./
 RUN pnpm install --frozen-lockfile --yes
 
-COPY --from=api-builder /src/Api/openapi.json ../api/Api/openapi.json
+COPY --from=api-builder /src/api/Api/openapi.json ../api/Api/openapi.json
 COPY frontend/ .
 
 RUN OUTPUT_MODE=standalone pnpm build

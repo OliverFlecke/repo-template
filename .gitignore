@@ -1,6 +1,10 @@
 tmp/
 openapi.json
 TestResults/
+Generated/
+logs/
+.worktrees/
+worktrees/
 
 ### Linux ###
 *~

@@ -1,19 +1,35 @@
 <Project>
-	<PropertyGroup>
-		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-	</PropertyGroup>
-
-	<!-- Production dependencies -->
-	<ItemGroup>
-		<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-		<!-- Version 3.* is not compatible with dotnet 10. Remaining on 2.* for now. -->
-		<PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.10" />
-		<PackageVersion Include="Microsoft.OpenApi" Version="2.11.0" />
-	</ItemGroup>
-
-	<!-- Development dependencies -->
-	<ItemGroup>
-		<PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
-		<PackageVersion Include="TUnit" Version="1.61.38" />
-	</ItemGroup>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <!-- Production dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="Bogus" Version="35.6.5" />
+    <PackageVersion Include="Marten" Version="9.20.0" />
+    <PackageVersion Include="Marten.NodaTime" Version="9.20.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <!-- Version 3.* is not compatible with dotnet 10. Remaining on 2.* for now. -->
+    <PackageVersion Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.11.0" />
+    <PackageVersion Include="NodaTime" Version="3.3.3" />
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
+    <PackageVersion Include="Npgsql.DependencyInjection" Version="10.0.3" />
+    <PackageVersion Include="Serilog" Version="4.4.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Formatting.Compact" Version="3.0.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
+    <PackageVersion Include="Testcontainers" Version="4.13.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
+    <PackageVersion Include="TUnit.AspNetCore" Version="1.61.38" />
+    <PackageVersion Include="WireMock.Net" Version="2.13.0" />
+    <PackageVersion Include="WolverineFx" Version="6.23.0" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.23.0" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.23.0" />
+  </ItemGroup>
+  <!-- Development dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.10" />
+    <PackageVersion Include="TUnit" Version="1.61.38" />
+  </ItemGroup>
 </Project>
