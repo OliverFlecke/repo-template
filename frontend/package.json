@@ -13,7 +13,10 @@
 		"lint": "biome lint",
 		"story:build": "ladle build",
 		"story:dev": "ladle serve",
-		"story:preview": "ladle preview"
+		"story:preview": "ladle preview",
+		"test:e2e": "playwright test",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:report": "playwright show-report"
 	},
 	"dependencies": {
 		"@tanstack/react-query": "^5.101.4",
@@ -26,6 +29,7 @@
 	"devDependencies": {
 		"@hey-api/openapi-ts": "0.99.0",
 		"@ladle/react": "^5.1.1",
+		"@playwright/test": "^1.62.1",
 		"@types/node": "^26.1.2",
 		"@types/react": "^19.2.18",
 		"@types/react-dom": "^19.2.4",
