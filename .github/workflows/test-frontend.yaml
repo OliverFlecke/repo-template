@@ -19,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v4.2.4
+        with:
+          install_args: dotnet node pnpm
 
       # Generates api/Api/openapi.json, which the frontend build consumes to
       # generate its API client. Doesn't need the database or any other

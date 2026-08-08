@@ -111,8 +111,8 @@ url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.5
 provenance = "github-attestations"
 
 [[tools.dotnet]]
-version = "10.0.300"
-backend = "asdf:dotnet"
+version = "10.0.302"
+backend = "core:dotnet"
 
 [[tools."github:zavoloklom/docker-compose-linter"]]
 version = "3.1.0"
@@ -345,15 +345,19 @@ backend = "aqua:tamasfe/taplo"
 
 [tools.taplo."platforms.linux-arm64"]
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-linux-aarch64.gz"
+url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257322597"
 
 [tools.taplo."platforms.linux-arm64-musl"]
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-linux-aarch64.gz"
+url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257322597"
 
 [tools.taplo."platforms.linux-x64"]
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-linux-x86_64.gz"
+url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257322600"
 
 [tools.taplo."platforms.linux-x64-musl"]
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-linux-x86_64.gz"
+url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257322600"
 
 [tools.taplo."platforms.macos-arm64"]
 checksum = "blake3:353ecb1ed7d279dec5e2fd388d292ef97db08a651405fa664ffec1b2896c05f0"
@@ -361,9 +365,11 @@ url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-darwin-aa
 
 [tools.taplo."platforms.macos-x64"]
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-darwin-x86_64.gz"
+url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257323116"
 
 [tools.taplo."platforms.windows-x64"]
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-windows-x86_64.zip"
+url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257323062"
 
 [[tools.yamllint]]
 version = "1.38.0"
