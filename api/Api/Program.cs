@@ -77,6 +77,11 @@ builder.Services.AddSingleton(sp =>
 	return new NpgsqlDataSourceBuilder(config.Value.ConnectionString).Build();
 });
 
+// JasperFx otherwise determines its "application assembly" by walking the call stack
+// (Assembly.GetReferencedAssemblies), which isn't supported under Native AOT. Pinning it
+// explicitly short-circuits that fallback. See JasperFx.AotSmoke/Program.cs upstream.
+JasperFxOptions.RememberedApplicationAssembly = typeof(Program).Assembly;
+
 builder.Services.CritterStackDefaults(options =>
 {
 	options.Production.AssertAllPreGeneratedTypesExist = true;
@@ -110,21 +115,15 @@ else
 }
 
 builder.Host.UseWolverine(opts =>
-	{
-		// ApplicationAssembly is a process-wide static pinned by whichever Wolverine host starts
-		// first in the process (see Wolverine's ApplicationAssemblyReuseWarning / GH-3521). Set it
-		// explicitly rather than relying on calling-assembly inference, since the test host builds
-		// this same Program via reflection (WebApplicationFactory<Program>) and can otherwise pin
-		// the wrong assembly, causing handler discovery to silently find nothing ("No routes can
-		// be determined for Envelope ...").
-		opts.ApplicationAssembly = typeof(Program).Assembly;
-		opts.CodeGeneration.TypeLoadMode = TypeLoadMode.Static;
-		// OpenFgaApiClient is registered via AddHttpClient<T>, an opaque factory Wolverine's
-		// codegen can't inline-construct, so it must be resolved via service location instead.
-		opts.CodeGeneration.AlwaysUseServiceLocationFor<OpenFgaApiClient>();
-		opts.Policies.UseDurableInboxOnAllListeners();
-		opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
-	});
+{
+	opts.ApplicationAssembly = typeof(Program).Assembly;
+	opts.CodeGeneration.TypeLoadMode = TypeLoadMode.Static;
+	// OpenFgaApiClient is registered via AddHttpClient<T>, an opaque factory Wolverine's
+	// codegen can't inline-construct, so it must be resolved via service location instead.
+	opts.CodeGeneration.AlwaysUseServiceLocationFor<OpenFgaApiClient>();
+	opts.Policies.UseDurableInboxOnAllListeners();
+	opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
+});
 
 if (builder.Environment.IsDevelopment())
 {
@@ -148,8 +147,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 var adminEndpoints = app.MapGroup("v1/admin")
-	.RequireAuthorization(new OpenFgaAuthorizationRequirement("admin", "system", "core"))
-	;
+	.RequireAuthorization(new OpenFgaAuthorizationRequirement("admin", "system", "core"));
 
 adminEndpoints.MapGroup("organization").MapOrganizationEndpoints();
 
@@ -158,10 +156,23 @@ organizationEndpoints.MapOrganizationMemberEndpoints();
 
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
-await RunJasperFxCommandsAotSafe(app, args);
+app.Logger.LogInformation("Starting API in environment {Environment}", app.Environment.EnvironmentName);
+
+// JasperFx's CLI command dispatch (db-apply, codegen, describe, etc.) uses reflection
+// (Assembly.GetReferencedAssemblies) that isn't supported on Native AOT. The published
+// container always runs with no arguments, so only reach for it when CLI args are passed,
+// i.e. dev-time tooling invocations like `dotnet run -- codegen write`.
+if (args.Length > 0)
+{
+	await RunJasperFxCommandsAotSafe(app, args);
+}
+else
+{
+	await app.RunAsync();
+}
 
 [UnconditionalSuppressMessage("Trimming", "IL2026",
-	Justification = "Reflective JasperFx CLI command dispatch (db-apply, codegen, describe, etc.) is dev-time tooling only. The published container always runs with no arguments, so this branch just starts the host and never exercises the reflective path.")]
+	Justification = "Reflective JasperFx CLI command dispatch (db-apply, codegen, describe, etc.) is dev-time tooling only, gated behind non-empty CLI args, so it never runs in the published container.")]
 [UnconditionalSuppressMessage("AOT", "IL3050",
 	Justification = "Same as IL2026: only reachable via dev-time CLI args, never in the published AOT binary's actual run path.")]
 static Task RunJasperFxCommandsAotSafe(WebApplication app, string[] args) => app.RunJasperFxCommands(args);

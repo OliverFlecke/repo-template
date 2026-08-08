@@ -5,8 +5,8 @@
   <!-- Production dependencies -->
   <ItemGroup>
     <PackageVersion Include="Bogus" Version="35.6.5" />
-    <PackageVersion Include="Marten" Version="9.20.0" />
-    <PackageVersion Include="Marten.NodaTime" Version="9.20.0" />
+    <PackageVersion Include="Marten" Version="9.22.4" />
+    <PackageVersion Include="Marten.NodaTime" Version="9.22.4" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <!-- Version 3.* is not compatible with dotnet 10. Remaining on 2.* for now. -->
@@ -23,9 +23,9 @@
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.13.0" />
     <PackageVersion Include="TUnit.AspNetCore" Version="1.61.38" />
     <PackageVersion Include="WireMock.Net" Version="2.13.0" />
-    <PackageVersion Include="WolverineFx" Version="6.23.0" />
-    <PackageVersion Include="WolverineFx.Marten" Version="6.23.0" />
-    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.23.0" />
+    <PackageVersion Include="WolverineFx" Version="6.24.7" />
+    <PackageVersion Include="WolverineFx.Marten" Version="6.24.7" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.24.7" />
   </ItemGroup>
   <!-- Development dependencies -->
   <ItemGroup>
