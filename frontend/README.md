@@ -14,6 +14,16 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser.
 
+## Component library
+
+The shared UI components live in `ui/`, styled with CSS Modules and the
+design tokens in `app/globals.css`. Browse them with
+[Ladle](https://ladle.dev/):
+
+```sh
+pnpm story:dev
+```
+
 ## End-to-end tests
 
 End-to-end tests use [Playwright](https://playwright.dev/) and live in `e2e/`.

@@ -1,0 +1,18 @@
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+}
+
+.required {
+	color: var(--color-danger);
+}
+
+.helperText {
+	font-size: var(--font-size-sm);
+	color: var(--text-secondary);
+}
+
+.errorText {
+	color: var(--color-danger);
+}
