@@ -5,3 +5,12 @@ api/
 node_modules/
 certificates/
 next-env.d.ts
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+.env.e2e.local
+
+# Ladle
+build/

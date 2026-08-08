@@ -1,0 +1,4 @@
+.input {
+	composes: field from "../util/field.module.css";
+	height: 40px;
+}
