@@ -6,6 +6,9 @@ import {
 	getOrganizationsAdminQueryKey,
 	postV1AdminOrganizationMutation,
 } from "@/api/@tanstack/react-query.gen";
+import { Button } from "@/ui/Button/Button";
+import { FormField } from "@/ui/FormField/FormField";
+import { Input } from "@/ui/Input/Input";
 import styles from "./CreateOrganizationDialog.module.css";
 
 export type CreateOrganizationDialogHandle = {
@@ -48,27 +51,30 @@ const CreateOrganizationDialog = forwardRef<CreateOrganizationDialogHandle>(
 				>
 					<h2>Create organization</h2>
 
-					<label className={styles.field}>
-						Name
-						<input
+					<FormField label="Name" required>
+						<Input
 							type="text"
 							value={name}
 							onChange={(e) => setName(e.target.value)}
 							required
 						/>
-					</label>
+					</FormField>
 
 					{error && (
 						<p className={styles.error}>Failed to create organization.</p>
 					)}
 
 					<div className={styles.actions}>
-						<button type="button" onClick={() => dialogRef.current?.close()}>
+						<Button
+							variant="outlined"
+							color="secondary"
+							onClick={() => dialogRef.current?.close()}
+						>
 							Cancel
-						</button>
-						<button type="submit" disabled={isPending}>
+						</Button>
+						<Button type="submit" disabled={isPending}>
 							{isPending ? "Creating..." : "Create"}
-						</button>
+						</Button>
 					</div>
 				</form>
 			</dialog>

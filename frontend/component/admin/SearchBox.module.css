@@ -1,8 +1,3 @@
 .input {
-	padding: 0.4rem 0.6rem;
-	border: 1px solid var(--button-secondary-border);
-	border-radius: 4px;
-	background: var(--bg-primary);
-	color: var(--text-primary);
 	min-width: 240px;
 }

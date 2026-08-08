@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "react-oidc-context";
 import { useLogout } from "@/component/auth";
+import { Button } from "@/ui/Button/Button";
 import styles from "./Menu.module.css";
 
 export default function Menu() {
@@ -17,11 +18,15 @@ export default function Menu() {
 				<div>
 					<Link href="/admin">Admin</Link>
 					<div>{user.profile.name}</div>
-					<button onClick={logout}>Log out</button>
+					<Button variant="text" onClick={logout}>
+						Log out
+					</Button>
 				</div>
 			) : (
 				<div>
-					<button onClick={() => signinRedirect()}>Sign in</button>
+					<Button variant="text" onClick={() => signinRedirect()}>
+						Sign in
+					</Button>
 				</div>
 			)}
 		</div>

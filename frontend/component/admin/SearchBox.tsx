@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Input } from "@/ui/Input/Input";
 import styles from "./SearchBox.module.css";
 
 type Props = {
@@ -20,7 +21,7 @@ export default function SearchBox({ value, onChange, placeholder }: Props) {
 	}, [draft]);
 
 	return (
-		<input
+		<Input
 			type="search"
 			className={styles.input}
 			value={draft}

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { getOrganizationsAdminOptions } from "@/api/@tanstack/react-query.gen";
+import { Button } from "@/ui/Button/Button";
 import CreateOrganizationDialog, {
 	type CreateOrganizationDialogHandle,
 } from "./CreateOrganizationDialog";
@@ -48,9 +49,9 @@ export default function OrganizationsPage() {
 					onChange={handleSearchChange}
 					placeholder="Search organizations..."
 				/>
-				<button type="button" onClick={() => dialogRef.current?.open()}>
+				<Button onClick={() => dialogRef.current?.open()}>
 					Create organization
-				</button>
+				</Button>
 			</div>
 
 			{isError && (
