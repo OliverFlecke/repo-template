@@ -1,0 +1,5 @@
+.textarea {
+	composes: field from "../util/field.module.css";
+	min-height: 96px;
+	resize: vertical;
+}
