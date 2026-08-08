@@ -18,6 +18,16 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Database__Host=db
+      - Database__Port=5432
+      - Database__Username=postgres
+      - Database__Password=postgres
+      - Database__Database=postgres
 
   # TODO: need to consider whether to use this or some S3 compatable mock
   # Emulator for Azure Storage, used for local file uploads instead of sending
