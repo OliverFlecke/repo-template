@@ -10,6 +10,38 @@ services:
       - "127.0.0.1:3000:3000"
     restart: unless-stopped
 
+  # Applies outstanding Marten/Wolverine schema changes before the api
+  # starts. ResourceAutoCreate is off in Production (see Program.cs), so
+  # this explicit step is required - it's a no-op once the schema is
+  # up to date.
+  api-migrate:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: api-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+      openfga-setup:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Database__Host=db
+      - Database__Port=5432
+      - Database__Username=postgres
+      - Database__Password=postgres
+      - Database__Database=postgres
+      - OpenFga__Host=http://openfga:8080
+    volumes:
+      - ./tmp/openfga:/shared:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -a
+        [ -f /shared/openfga.env ] && . /shared/openfga.env
+        set +a
+        exec ./Api db-apply
+
   api:
     build:
       context: .
@@ -19,6 +51,8 @@ services:
       - "127.0.0.1:8080:8080"
     restart: unless-stopped
     depends_on:
+      api-migrate:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       openfga-setup:
