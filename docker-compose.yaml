@@ -21,6 +21,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      openfga-setup:
+        condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Database__Host=db
@@ -28,6 +30,21 @@ services:
       - Database__Username=postgres
       - Database__Password=postgres
       - Database__Database=postgres
+      - OpenFga__Host=http://openfga:8080
+    volumes:
+      - ./tmp/openfga:/shared:ro
+    # OpenFga__StoreId/ModelId are generated at runtime by openfga-setup, so
+    # they can't be baked in as static env vars (Compose reads `env_file:`
+    # before any container runs, which is too early - the file wouldn't
+    # exist yet on a fresh checkout). Source them from the shared file once
+    # openfga-setup has written it, then hand off to the real entrypoint.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -a
+        [ -f /shared/openfga.env ] && . /shared/openfga.env
+        set +a
+        exec ./Api
 
   # TODO: need to consider whether to use this or some S3 compatable mock
   # Emulator for Azure Storage, used for local file uploads instead of sending
@@ -54,6 +71,11 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "127.0.0.1:5432:5432"
+    volumes:
+      # Gives OpenFGA its own database on this same postgres instance. Only
+      # runs on first init of an empty data directory, which matches this
+      # service since it has no persistent volume of its own.
+      - ./libs/OpenFGA/init-db.sql:/docker-entrypoint-initdb.d/init-openfga-db.sql:ro
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
@@ -107,6 +129,51 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
     ports:
       - "127.0.0.1:9090:8080"
+
+  # Runs OpenFGA's schema migration against its database on the shared
+  # postgres instance before the server starts.
+  openfga-migrate:
+    image: openfga/openfga:v1.18
+    container_name: openfga-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:postgres@db:5432/openfga?sslmode=disable
+    command: migrate
+
+  openfga:
+    image: openfga/openfga:v1.18
+    container_name: openfga
+    depends_on:
+      openfga-migrate:
+        condition: service_completed_successfully
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:postgres@db:5432/openfga?sslmode=disable
+      - OPENFGA_LOG_FORMAT=json
+    ports:
+      - "127.0.0.1:6080:8080" # Needed for the http server
+      - "127.0.0.1:6081:8081" # Needed for the grpc server (if used)
+    restart: unless-stopped
+    command: run
+
+  # One-shot job that creates (or reuses) the OpenFGA store and writes the
+  # authorization model from libs/OpenFGA/fga.mod, then hands the resulting
+  # store/model ids to the api container via a shared file (see api's
+  # entrypoint override above).
+  openfga-setup:
+    build:
+      context: ./libs/OpenFGA/setup
+    container_name: openfga-setup
+    depends_on:
+      - openfga
+    environment:
+      - FGA_API_URL=http://openfga:8080
+    volumes:
+      - ./libs/OpenFGA:/model:ro
+      - ./tmp/openfga:/shared
 
   redis:
     image: redis:7-alpine
