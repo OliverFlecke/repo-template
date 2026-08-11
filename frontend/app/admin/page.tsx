@@ -1,19 +1,12 @@
 "use client";
 
-import { useAuth, withAuthenticationRequired } from "react-oidc-context";
-import { getRoles } from "@/component/auth/config";
+import { withAuthenticationRequired } from "react-oidc-context";
 import OrganizationsPage from "@/component/admin/OrganizationsPage";
+import { withRequiredRole } from "@/component/auth/withRequiredRole";
 
-function AdminGuard() {
-	const { user } = useAuth();
-
-	if (!getRoles(user).includes("admin")) {
-		return <div>You don&apos;t have access to this page.</div>;
-	}
-
-	return <OrganizationsPage />;
-}
-
-export default withAuthenticationRequired(AdminGuard, {
-	OnRedirecting: () => <div>Redirecting to the login page...</div>,
-});
+export default withAuthenticationRequired(
+	withRequiredRole(OrganizationsPage, "admin"),
+	{
+		OnRedirecting: () => <div>Redirecting to the login page...</div>,
+	},
+);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "react-oidc-context";
 import { useLogout } from "@/component/auth";
-import { getRoles } from "@/component/auth/config";
+import { getRoles } from "@/component/auth/withRequiredRole";
 import { Button } from "@/ui/Button/Button";
 import styles from "./Menu.module.css";
 
