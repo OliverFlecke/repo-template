@@ -32,7 +32,7 @@ public sealed class OrganizationTest
 
 		var body = new CreateOrganizationRequest { Name = "Apple" };
 
-		var response = await client.PostAsJsonAsync("v1/admin/organization", body);
+		var response = await client.PostAsJsonAsync("api/v1/admin/organization", body);
 
 		// Assert
 		await Assert.That(response).HasStatusCode(HttpStatusCode.Created);
@@ -134,7 +134,7 @@ public sealed class OrganizationTest
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
-		var response = await client.GetAsync($"v1/admin/organization{query}");
+		var response = await client.GetAsync($"api/v1/admin/organization{query}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.BadRequest);
 	}
@@ -146,7 +146,7 @@ public sealed class OrganizationTest
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
-		var response = await client.GetAsync($"v1/admin/organization{query}");
+		var response = await client.GetAsync($"api/v1/admin/organization{query}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.BadRequest);
 	}
@@ -158,7 +158,7 @@ public sealed class OrganizationTest
 		var created = await client.CreateOrganization($"Original-{Guid.NewGuid()}");
 
 		var newName = $"Updated-{Guid.NewGuid()}";
-		var response = await client.PatchAsJsonAsync($"v1/admin/organization/{created.Id}", new UpdateOrganizationRequest { Name = newName });
+		var response = await client.PatchAsJsonAsync($"api/v1/admin/organization/{created.Id}", new UpdateOrganizationRequest { Name = newName });
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 		var updated = await Assert.That(await response.Content.ReadFromJsonAsync<Org.Response.Organization>()).IsNotNull();
@@ -177,7 +177,7 @@ public sealed class OrganizationTest
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
-		var response = await client.PatchAsJsonAsync($"v1/admin/organization/{Guid.NewGuid()}", new UpdateOrganizationRequest { Name = "Doesn't matter" });
+		var response = await client.PatchAsJsonAsync($"api/v1/admin/organization/{Guid.NewGuid()}", new UpdateOrganizationRequest { Name = "Doesn't matter" });
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
 	}
@@ -188,7 +188,7 @@ public sealed class OrganizationTest
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var created = await client.CreateOrganization($"ToDelete-{Guid.NewGuid()}");
 
-		var response = await client.DeleteAsync($"v1/admin/organization/{created.Id}");
+		var response = await client.DeleteAsync($"api/v1/admin/organization/{created.Id}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 
@@ -203,7 +203,7 @@ public sealed class OrganizationTest
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
-		var response = await client.DeleteAsync($"v1/admin/organization/{Guid.NewGuid()}");
+		var response = await client.DeleteAsync($"api/v1/admin/organization/{Guid.NewGuid()}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 	}
@@ -214,10 +214,10 @@ public sealed class OrganizationTest
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var created = await client.CreateOrganization($"DeleteTwice-{Guid.NewGuid()}");
 
-		var firstResponse = await client.DeleteAsync($"v1/admin/organization/{created.Id}");
+		var firstResponse = await client.DeleteAsync($"api/v1/admin/organization/{created.Id}");
 		await Assert.That(firstResponse).HasStatusCode(HttpStatusCode.OK);
 
-		var secondResponse = await client.DeleteAsync($"v1/admin/organization/{created.Id}");
+		var secondResponse = await client.DeleteAsync($"api/v1/admin/organization/{created.Id}");
 		await Assert.That(secondResponse).HasStatusCode(HttpStatusCode.OK);
 	}
 
@@ -230,7 +230,7 @@ public sealed class OrganizationTest
 
 		await Assert.That(await client.GetOrganizations()).Member(x => x.Data, x => x.Any(o => o.Id == created.Id));
 
-		var deleteResponse = await client.DeleteAsync($"v1/admin/organization/{created.Id}");
+		var deleteResponse = await client.DeleteAsync($"api/v1/admin/organization/{created.Id}");
 		await Assert.That(deleteResponse).HasStatusCode(HttpStatusCode.OK);
 
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
@@ -245,7 +245,7 @@ public static class ClientOrganizationExtensions
 {
 	public static async Task<Org.Response.Organization> CreateOrganization(this HttpClient client, string name)
 	{
-		var response = await client.PostAsJsonAsync("v1/admin/organization", new CreateOrganizationRequest { Name = name });
+		var response = await client.PostAsJsonAsync("api/v1/admin/organization", new CreateOrganizationRequest { Name = name });
 		response.EnsureSuccessStatusCode();
 
 		return (await response.Content.ReadFromJsonAsync<Org.Response.Organization>())!;
@@ -255,7 +255,7 @@ public static class ClientOrganizationExtensions
 		this HttpClient client,
 		string? query = default)
 	{
-		var response = await client.GetAsync($"v1/admin/organization{query}");
+		var response = await client.GetAsync($"api/v1/admin/organization{query}");
 		response.EnsureSuccessStatusCode();
 
 		return (await response.Content.ReadFromJsonAsync<PagedResponse<Org.Response.Organization>>())!;

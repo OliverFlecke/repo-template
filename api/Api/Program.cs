@@ -146,12 +146,16 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-var adminEndpoints = app.MapGroup("v1/admin")
+// Prefixed so a reverse proxy can route it to the same origin as the frontend
+// (see Caddyfile) - keeps browser calls same-origin, no CORS needed.
+var api = app.MapGroup("/api");
+
+var adminEndpoints = api.MapGroup("v1/admin")
 	.RequireAuthorization(new OpenFgaAuthorizationRequirement("admin", "system", "core"));
 
 adminEndpoints.MapGroup("organization").MapOrganizationEndpoints();
 
-var organizationEndpoints = app.MapGroup("v1/organization");
+var organizationEndpoints = api.MapGroup("v1/organization");
 organizationEndpoints.MapOrganizationMemberEndpoints();
 
 app.MapHealthChecks("/healthz").AllowAnonymous();

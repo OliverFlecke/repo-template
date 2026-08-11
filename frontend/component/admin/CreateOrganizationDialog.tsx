@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import {
 	getOrganizationsAdminQueryKey,
-	postV1AdminOrganizationMutation,
+	postApiV1AdminOrganizationMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { Button } from "@/ui/Button/Button";
 import { FormField } from "@/ui/FormField/FormField";
@@ -22,7 +22,7 @@ const CreateOrganizationDialog = forwardRef<CreateOrganizationDialogHandle>(
 		const queryClient = useQueryClient();
 
 		const { mutate, isPending, error, reset } = useMutation({
-			...postV1AdminOrganizationMutation(),
+			...postApiV1AdminOrganizationMutation(),
 			onSuccess: () => {
 				queryClient.invalidateQueries({
 					queryKey: getOrganizationsAdminQueryKey(),

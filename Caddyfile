@@ -1,0 +1,28 @@
+# Terminates HTTPS for local docker-compose using the mkcert certificate
+# already generated for the frontend dev server (see frontend/certificates/,
+# created via `mkcert localhost 127.0.0.1 ::1`). Browsers already trust the
+# local mkcert CA, so this gets real green-lock HTTPS with no warnings.
+{
+	auto_https off
+	admin off
+}
+
+# Fronts app and api on one origin: browser calls to /api/* stay same-origin,
+# so the api needs no CORS policy in production (see api/Api/Program.cs).
+:3000 {
+	tls /certs/localhost.pem /certs/localhost-key.pem
+
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		reverse_proxy app:3000
+	}
+}
+
+# Direct access to the api, e.g. for scripts or debugging.
+:8080 {
+	tls /certs/localhost.pem /certs/localhost-key.pem
+	reverse_proxy api:8080
+}
