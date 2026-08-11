@@ -80,6 +80,15 @@ public sealed class AcraMock : IAsyncInitializer, IAsyncDisposable
 			}));
 	}
 
+	/// <summary>Makes every datastore_search call on this server return 503, to exercise the
+	/// retry behaviour wired up via AddStandardResilienceHandler in AcraSetup.</summary>
+	public void MockAlwaysUnavailable()
+	{
+		server
+			.Given(Request.Create().WithPath("/api/action/datastore_search").UsingGet())
+			.RespondWith(Response.Create().WithStatusCode(503));
+	}
+
 	static object ToRecord(AcraEntity entity) => new
 	{
 		uen = entity.Uen,

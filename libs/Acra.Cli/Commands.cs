@@ -2,7 +2,9 @@ using System.ComponentModel;
 
 using Acra;
 
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -11,18 +13,18 @@ namespace Acra.Cli;
 
 static class AcraClientFactory
 {
-	/// <summary>Reads an optional API key from the ACRA_API_KEY environment variable, for higher
-	/// rate limits when actually querying the real data.gov.sg API.</summary>
+	/// <summary>Builds the client through SetupAcra so it gets the same standard resilience
+	/// handler (retries on network errors/429/5xx) as a hosted app would. Reads an optional API
+	/// key from the ACRA_API_KEY environment variable, for higher rate limits when actually
+	/// querying the real data.gov.sg API.</summary>
 	public static AcraApiClient Create()
 	{
-		var config = new AcraConfig { ApiKey = Environment.GetEnvironmentVariable("ACRA_API_KEY") };
-		var http = new HttpClient { BaseAddress = config.Host };
-		if (!string.IsNullOrEmpty(config.ApiKey))
-		{
-			http.DefaultRequestHeaders.Add("x-api-key", config.ApiKey);
-		}
+		var builder = Host.CreateApplicationBuilder();
+		builder.Logging.ClearProviders();
+		builder.Configuration[$"{AcraConfig.Section}:ApiKey"] = Environment.GetEnvironmentVariable("ACRA_API_KEY");
+		builder.SetupAcra();
 
-		return new AcraApiClient(NullLogger<AcraApiClient>.Instance, config, http);
+		return builder.Build().Services.GetRequiredService<AcraApiClient>();
 	}
 }
 
