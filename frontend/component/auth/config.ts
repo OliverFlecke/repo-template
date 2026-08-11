@@ -5,6 +5,7 @@ const oidcConfig = {
 	authority: process.env.NEXT_PUBLIC_AUTHORITY!,
 	client_id: process.env.NEXT_PUBLIC_CLIENT_ID!,
 	scope: process.env.NEXT_PUBLIC_OAUTH_SCOPES!,
+	extraQueryParams: { audience: process.env.NEXT_PUBLIC_AUTH_AUDIENCE! },
 
 	redirect_uri: typeof window !== "undefined" ? window.location.origin : "",
 	automaticSilentRenew: true,
@@ -37,9 +38,7 @@ const oidcConfig = {
 
 export default oidcConfig;
 
-/**
- * Get the current authorized user, if any, outside of the React context tree.
- */
+/** Get the current authorized user, if any, outside of the React context tree. */
 export function getUser(): User | null {
 	const oidcStorage = localStorage.getItem(
 		`oidc.user:${oidcConfig.authority}:${oidcConfig.client_id}`,

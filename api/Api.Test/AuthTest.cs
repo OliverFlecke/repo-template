@@ -9,15 +9,15 @@ public sealed class AuthTest
 	public required WebApplicationFactory App { get; init; }
 
 	[Test]
-	[Arguments("GET", "v1/admin/organization")]
-	[Arguments("POST", "v1/admin/organization")]
-	[Arguments("PATCH", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
-	[Arguments("DELETE", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
-	[Arguments("GET", "v1/organization")]
-	[Arguments("POST", "v1/organization")]
-	[Arguments("POST", "v1/organization/00000000-0000-0000-0000-000000000000/member")]
-	[Arguments("DELETE", "v1/organization/00000000-0000-0000-0000-000000000000/member/some-user")]
-	[Arguments("POST", "v1/organization/00000000-0000-0000-0000-000000000000/leave")]
+	[Arguments("GET", "api/v1/admin/organization")]
+	[Arguments("POST", "api/v1/admin/organization")]
+	[Arguments("PATCH", "api/v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("DELETE", "api/v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("GET", "api/v1/organization")]
+	[Arguments("POST", "api/v1/organization")]
+	[Arguments("POST", "api/v1/organization/00000000-0000-0000-0000-000000000000/member")]
+	[Arguments("DELETE", "api/v1/organization/00000000-0000-0000-0000-000000000000/member/some-user")]
+	[Arguments("POST", "api/v1/organization/00000000-0000-0000-0000-000000000000/leave")]
 	public async Task Endpoint_WithoutToken_RespondsUnauthorized(string method, string path)
 	{
 		var client = App.CreateClient();
@@ -41,10 +41,10 @@ public sealed class AuthTest
 	}
 
 	[Test]
-	[Arguments("GET", "v1/admin/organization")]
-	[Arguments("POST", "v1/admin/organization")]
-	[Arguments("PATCH", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
-	[Arguments("DELETE", "v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("GET", "api/v1/admin/organization")]
+	[Arguments("POST", "api/v1/admin/organization")]
+	[Arguments("PATCH", "api/v1/admin/organization/00000000-0000-0000-0000-000000000000")]
+	[Arguments("DELETE", "api/v1/admin/organization/00000000-0000-0000-0000-000000000000")]
 	public async Task Endpoint_WhenUserIsNotAdmin_RespondsForbidden(string method, string path)
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject: "not-an-admin");
@@ -56,8 +56,8 @@ public sealed class AuthTest
 	}
 
 	[Test]
-	[Arguments("POST", "v1/organization/00000000-0000-0000-0000-000000000000/member")]
-	[Arguments("DELETE", "v1/organization/00000000-0000-0000-0000-000000000000/member/some-user")]
+	[Arguments("POST", "api/v1/organization/00000000-0000-0000-0000-000000000000/member")]
+	[Arguments("DELETE", "api/v1/organization/00000000-0000-0000-0000-000000000000/member/some-user")]
 	public async Task Endpoint_WhenUserCannotAddToOrganization_RespondsForbidden(string method, string path)
 	{
 		var subject = Guid.NewGuid().ToString();

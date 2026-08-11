@@ -24,7 +24,7 @@ public sealed class OrganizationMemberTest
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
-		var response = await client.PostAsJsonAsync("v1/organization", new CreateOrganizationRequest { Name = "Acme" });
+		var response = await client.PostAsJsonAsync("api/v1/organization", new CreateOrganizationRequest { Name = "Acme" });
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.Created);
 	}
@@ -34,7 +34,7 @@ public sealed class OrganizationMemberTest
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
-		var response = await client.PostAsJsonAsync("v1/organization", new CreateOrganizationRequest { Name = "Acme" });
+		var response = await client.PostAsJsonAsync("api/v1/organization", new CreateOrganizationRequest { Name = "Acme" });
 		var org = (await response.Content.ReadFromJsonAsync<Org.Response.Organization>())!;
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
@@ -73,7 +73,7 @@ public sealed class OrganizationMemberTest
 		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: true);
 
 		var response = await client.PostAsJsonAsync(
-			$"v1/organization/{org.Id}/member",
+			$"api/v1/organization/{org.Id}/member",
 			new AddMemberRequest { UserId = newMember, Role = OrganizationRole.Member });
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
@@ -97,7 +97,7 @@ public sealed class OrganizationMemberTest
 		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: false);
 
 		var response = await client.PostAsJsonAsync(
-			$"v1/organization/{org.Id}/member",
+			$"api/v1/organization/{org.Id}/member",
 			new AddMemberRequest { UserId = Guid.NewGuid().ToString(), Role = OrganizationRole.Member });
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.Forbidden);
@@ -111,7 +111,7 @@ public sealed class OrganizationMemberTest
 		App.OpenFga.MockCheck(subject, "can_add", "organization", unknownId.ToString(), allowed: true);
 
 		var response = await client.PostAsJsonAsync(
-			$"v1/organization/{unknownId}/member",
+			$"api/v1/organization/{unknownId}/member",
 			new AddMemberRequest { UserId = Guid.NewGuid().ToString(), Role = OrganizationRole.Member });
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
@@ -125,11 +125,11 @@ public sealed class OrganizationMemberTest
 		var member = Guid.NewGuid().ToString();
 		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: true);
 		await client.PostAsJsonAsync(
-			$"v1/organization/{org.Id}/member",
+			$"api/v1/organization/{org.Id}/member",
 			new AddMemberRequest { UserId = member, Role = OrganizationRole.Member });
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
-		var response = await client.DeleteAsync($"v1/organization/{org.Id}/member/{member}");
+		var response = await client.DeleteAsync($"api/v1/organization/{org.Id}/member/{member}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
@@ -150,7 +150,7 @@ public sealed class OrganizationMemberTest
 		var unknownId = Guid.NewGuid();
 		App.OpenFga.MockCheck(subject, "can_add", "organization", unknownId.ToString(), allowed: true);
 
-		var response = await client.DeleteAsync($"v1/organization/{unknownId}/member/{Guid.NewGuid()}");
+		var response = await client.DeleteAsync($"api/v1/organization/{unknownId}/member/{Guid.NewGuid()}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
 	}
@@ -162,7 +162,7 @@ public sealed class OrganizationMemberTest
 		var org = await client.CreateMyOrganization($"RemoveNonMember-{Guid.NewGuid()}");
 		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: true);
 
-		var response = await client.DeleteAsync($"v1/organization/{org.Id}/member/{Guid.NewGuid()}");
+		var response = await client.DeleteAsync($"api/v1/organization/{org.Id}/member/{Guid.NewGuid()}");
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 	}
@@ -173,7 +173,7 @@ public sealed class OrganizationMemberTest
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var org = await client.CreateMyOrganization($"LeaveAlone-{Guid.NewGuid()}");
 
-		var response = await client.PostAsync($"v1/organization/{org.Id}/leave", null);
+		var response = await client.PostAsync($"api/v1/organization/{org.Id}/leave", null);
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
@@ -194,12 +194,12 @@ public sealed class OrganizationMemberTest
 		var otherMember = Guid.NewGuid().ToString();
 		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: true);
 		await client.PostAsJsonAsync(
-			$"v1/organization/{org.Id}/member",
+			$"api/v1/organization/{org.Id}/member",
 			new AddMemberRequest { UserId = otherMember, Role = OrganizationRole.Member });
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
 		var otherClient = App.CreateClient().WithAuthenticatedUser(otherMember);
-		var response = await otherClient.PostAsync($"v1/organization/{org.Id}/leave", null);
+		var response = await otherClient.PostAsync($"api/v1/organization/{org.Id}/leave", null);
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
@@ -221,7 +221,7 @@ public sealed class OrganizationMemberTest
 		var org = await client.CreateMyOrganization($"LeaveNotMember-{Guid.NewGuid()}");
 		var outsider = App.CreateClient().WithAuthenticatedUser(Guid.NewGuid().ToString());
 
-		var response = await outsider.PostAsync($"v1/organization/{org.Id}/leave", null);
+		var response = await outsider.PostAsync($"api/v1/organization/{org.Id}/leave", null);
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.Forbidden);
 	}
@@ -231,7 +231,7 @@ public sealed class OrganizationMemberTest
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 
-		var response = await client.PostAsync($"v1/organization/{Guid.NewGuid()}/leave", null);
+		var response = await client.PostAsync($"api/v1/organization/{Guid.NewGuid()}/leave", null);
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
 	}
@@ -241,7 +241,7 @@ public static class ClientOrganizationMemberExtensions
 {
 	public static async Task<Org.Response.Organization> CreateMyOrganization(this HttpClient client, string name)
 	{
-		var response = await client.PostAsJsonAsync("v1/organization", new CreateOrganizationRequest { Name = name });
+		var response = await client.PostAsJsonAsync("api/v1/organization", new CreateOrganizationRequest { Name = name });
 		response.EnsureSuccessStatusCode();
 
 		return (await response.Content.ReadFromJsonAsync<Org.Response.Organization>())!;
@@ -249,7 +249,7 @@ public static class ClientOrganizationMemberExtensions
 
 	public static async Task<List<OrganizationMembership>> GetMyOrganizations(this HttpClient client)
 	{
-		var response = await client.GetAsync("v1/organization");
+		var response = await client.GetAsync("api/v1/organization");
 		response.EnsureSuccessStatusCode();
 
 		return (await response.Content.ReadFromJsonAsync<List<OrganizationMembership>>())!;

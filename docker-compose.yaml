@@ -6,21 +6,22 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     container_name: app
-    ports:
-      - "127.0.0.1:3000:3000"
     restart: unless-stopped
 
-  api:
+  # Applies outstanding Marten/Wolverine schema changes before the api
+  # starts. ResourceAutoCreate is off in Production (see Program.cs), so
+  # this explicit step is required - it's a no-op once the schema is
+  # up to date.
+  api-migrate:
     build:
       context: .
       dockerfile: api/Dockerfile
-    container_name: api
-    ports:
-      - "127.0.0.1:8080:8080"
-    restart: unless-stopped
+    container_name: api-migrate
     depends_on:
       db:
         condition: service_healthy
+      openfga-setup:
+        condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Database__Host=db
@@ -28,22 +29,87 @@ services:
       - Database__Username=postgres
       - Database__Password=postgres
       - Database__Database=postgres
+      - OpenFga__Host=http://openfga:8080
+    volumes:
+      - ./tmp/openfga:/shared:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -a
+        [ -f /shared/openfga.env ] && . /shared/openfga.env
+        set +a
+        exec ./Api db-apply
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: api
+    restart: unless-stopped
+    depends_on:
+      api-migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      openfga-setup:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Database__Host=db
+      - Database__Port=5432
+      - Database__Username=postgres
+      - Database__Password=postgres
+      - Database__Database=postgres
+      - OpenFga__Host=http://openfga:8080
+      - Cors__AllowedOrigins__0=https://localhost:3000
+    volumes:
+      - ./tmp/openfga:/shared:ro
+    # OpenFga__StoreId/ModelId are generated at runtime by openfga-setup, so
+    # they can't be baked in as static env vars (Compose reads `env_file:`
+    # before any container runs, which is too early - the file wouldn't
+    # exist yet on a fresh checkout). Source them from the shared file once
+    # openfga-setup has written it, then hand off to the real entrypoint.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -a
+        [ -f /shared/openfga.env ] && . /shared/openfga.env
+        set +a
+        exec ./Api
+
+  # Terminates HTTPS in front of app/api using the mkcert certificate from
+  # frontend/certificates/ (see Caddyfile). Run `mkcert localhost 127.0.0.1
+  # ::1` in that directory first if it doesn't exist yet.
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    depends_on:
+      - app
+      - api
+    ports:
+      # 3000 is left free for a locally-run `pnpm dev` frontend.
+      - "127.0.0.1:4000:4000"
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./frontend/certificates:/certs:ro
+    restart: unless-stopped
 
   # TODO: need to consider whether to use this or some S3 compatable mock
   # Emulator for Azure Storage, used for local file uploads instead of sending
   # files to an actual server.
-  azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.35.0
-    container_name: azurite
-    volumes:
-      - ./tmp/data:/data
-    ports:
-      - "127.0.0.1:10000:10000"
-      - "127.0.0.1:10001:10001"
-      - "127.0.0.1:10002:10002"
-    command: "azurite --blobHost 0.0.0.0 --debug /data/debug.log --skipApiVersionCheck"
-    restart: unless-stopped
-    hostname: azurite
+  # azurite:
+  #   image: mcr.microsoft.com/azure-storage/azurite:3.35.0
+  #   container_name: azurite
+  #   volumes:
+  #     - ./tmp/data:/data
+  #   ports:
+  #     - "127.0.0.1:10000:10000"
+  #     - "127.0.0.1:10001:10001"
+  #     - "127.0.0.1:10002:10002"
+  #   command: "azurite --blobHost 0.0.0.0 --debug /data/debug.log --skipApiVersionCheck"
+  #   restart: unless-stopped
+  #   hostname: azurite
 
   db:
     image: postgres:18-alpine
@@ -54,6 +120,11 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "127.0.0.1:5432:5432"
+    volumes:
+      # Gives OpenFGA its own database on this same postgres instance. Only
+      # runs on first init of an empty data directory, which matches this
+      # service since it has no persistent volume of its own.
+      - ./libs/OpenFGA/init-db.sql:/docker-entrypoint-initdb.d/init-openfga-db.sql:ro
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
@@ -63,18 +134,18 @@ services:
 
   # Jaeger is used to collect OpenTelemetry. Visit the UI port to see traces
   # for the various applications.
-  jaeger:
-    image: jaegertracing/all-in-one:2.20.0
-    container_name: jaeger
-    environment:
-      COLLECTOR_ZIPKIN_HOST_PORT: 9412
-      COLLECTOR_OTLP_ENABLED: "true"
-      QUERY_BASE_PATH: /telemetry
-    ports:
-      - "127.0.0.1:4317:4317"
-      - "127.0.0.1:4318:4318"
-      - "127.0.0.1:16686:16686"
-    restart: unless-stopped
+  # jaeger:
+  #   image: jaegertracing/all-in-one:2.20.0
+  #   container_name: jaeger
+  #   environment:
+  #     COLLECTOR_ZIPKIN_HOST_PORT: 9412
+  #     COLLECTOR_OTLP_ENABLED: "true"
+  #     QUERY_BASE_PATH: /telemetry
+  #   ports:
+  #     - "127.0.0.1:4317:4317"
+  #     - "127.0.0.1:4318:4318"
+  #     - "127.0.0.1:16686:16686"
+  #   restart: unless-stopped
 
   kafka:
     image: apache/kafka:4.3.1
@@ -107,6 +178,51 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
     ports:
       - "127.0.0.1:9090:8080"
+
+  # Runs OpenFGA's schema migration against its database on the shared
+  # postgres instance before the server starts.
+  openfga-migrate:
+    image: openfga/openfga:v1.18
+    container_name: openfga-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:postgres@db:5432/openfga?sslmode=disable
+    command: migrate
+
+  openfga:
+    image: openfga/openfga:v1.18
+    container_name: openfga
+    depends_on:
+      openfga-migrate:
+        condition: service_completed_successfully
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://postgres:postgres@db:5432/openfga?sslmode=disable
+      - OPENFGA_LOG_FORMAT=json
+    ports:
+      - "127.0.0.1:6080:8080" # Needed for the http server
+      - "127.0.0.1:6081:8081" # Needed for the grpc server (if used)
+    restart: unless-stopped
+    command: run
+
+  # One-shot job that creates (or reuses) the OpenFGA store and writes the
+  # authorization model from libs/OpenFGA/fga.mod, then hands the resulting
+  # store/model ids to the api container via a shared file (see api's
+  # entrypoint override above).
+  openfga-setup:
+    build:
+      context: ./libs/OpenFGA/setup
+    container_name: openfga-setup
+    depends_on:
+      - openfga
+    environment:
+      - FGA_API_URL=http://openfga:8080
+    volumes:
+      - ./libs/OpenFGA:/model:ro
+      - ./tmp/openfga:/shared
 
   redis:
     image: redis:7-alpine
