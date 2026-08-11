@@ -61,6 +61,7 @@ services:
       - Database__Password=postgres
       - Database__Database=postgres
       - OpenFga__Host=http://openfga:8080
+      - Cors__AllowedOrigins__0=https://localhost:3000
     volumes:
       - ./tmp/openfga:/shared:ro
     # OpenFga__StoreId/ModelId are generated at runtime by openfga-setup, so

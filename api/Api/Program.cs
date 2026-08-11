@@ -125,10 +125,10 @@ builder.Host.UseWolverine(opts =>
 	opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
 });
 
-if (builder.Environment.IsDevelopment())
-{
-	builder.Services.AddCors();
-}
+builder.Services
+	.AddOptions<CorsConfig>()
+	.BindConfiguration(CorsConfig.SectionKey);
+builder.Services.AddCors();
 
 // Build and run the application
 var app = builder.Build();
@@ -137,10 +137,24 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
 	app.MapOpenApi().AllowAnonymous();
-	app.UseCors(opts => opts
-		.AllowAnyHeader()
-		.AllowAnyOrigin()
-		.AllowAnyMethod());
+}
+
+var corsConfig = app.Services.GetRequiredService<IOptions<CorsConfig>>().Value;
+if (corsConfig.AllowedOrigins.Length > 0 || app.Environment.IsDevelopment())
+{
+	app.UseCors(opts =>
+	{
+		if (corsConfig.AllowedOrigins.Length > 0)
+		{
+			opts.WithOrigins(corsConfig.AllowedOrigins);
+		}
+		else
+		{
+			opts.AllowAnyOrigin();
+		}
+
+		opts.AllowAnyHeader().AllowAnyMethod();
+	});
 }
 
 app.UseAuthentication();

@@ -9,7 +9,7 @@
 
 # Fronts app and api on one origin: browser calls to /api/* stay same-origin,
 # so the api needs no CORS policy in production (see api/Api/Program.cs).
-:3000 {
+:4000 {
 	tls /certs/localhost.pem /certs/localhost-key.pem
 
 	handle /api/* {
