@@ -21,3 +21,6 @@ jobs:
 
       - name: Run tests
         run: dotnet test libs/Acra.Test/Acra.Test.csproj
+
+      - name: Build CLI
+        run: dotnet build libs/Acra.Cli/Acra.Cli.csproj
