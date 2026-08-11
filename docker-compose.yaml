@@ -88,7 +88,7 @@ services:
       - api
     ports:
       # 3000 is left free for a locally-run `pnpm dev` frontend.
-      - "127.0.0.1:4000:3000"
+      - "127.0.0.1:4000:4000"
       - "127.0.0.1:8080:8080"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
