@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useAuth } from "react-oidc-context";
 import { useLogout } from "@/component/auth";
+import { getRoles } from "@/component/auth/config";
 import { Button } from "@/ui/Button/Button";
 import styles from "./Menu.module.css";
 
 export default function Menu() {
 	const { user, signinRedirect } = useAuth();
 	const logout = useLogout();
+	const isAdmin = getRoles(user).includes("admin");
 
 	return (
 		<div className={styles.container}>
@@ -16,7 +18,7 @@ export default function Menu() {
 
 			{user ? (
 				<div>
-					<Link href="/admin">Admin</Link>
+					{isAdmin && <Link href="/admin">Admin</Link>}
 					<div>{user.profile.name}</div>
 					<Button variant="text" onClick={logout}>
 						Log out

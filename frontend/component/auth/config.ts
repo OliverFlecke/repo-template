@@ -52,3 +52,27 @@ export function getUser(): User | null {
 
 	return User.fromStorageString(oidcStorage);
 }
+
+const ROLES_CLAIM = `${process.env.NEXT_PUBLIC_AUTH_ROLES_NAMESPACE}/roles`;
+
+/**
+ * Roles from the access token's custom `<namespace>/roles` claim (set by an
+ * Auth0 Action - see repo docs). UI convenience only, not a security
+ * boundary: the API independently enforces access via OpenFGA regardless of
+ * what this returns.
+ */
+export function getRoles(user: User | null | undefined): string[] {
+	if (!user?.access_token) {
+		return [];
+	}
+
+	try {
+		const [, payload] = user.access_token.split(".");
+		const claims = JSON.parse(
+			atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+		);
+		return claims[ROLES_CLAIM] ?? [];
+	} catch {
+		return [];
+	}
+}
