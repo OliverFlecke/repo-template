@@ -22,10 +22,10 @@ export default function OrganizationsPage() {
 	const { data, isLoading, isError } = useQuery({
 		...getOrganizationsAdminOptions({
 			query: {
-				Page: page,
-				PageSize: PAGE_SIZE,
-				SortDescending: sortDescending,
-				Search: search || undefined,
+				page,
+				page_size: PAGE_SIZE,
+				desc: sortDescending,
+				search: search || undefined,
 			},
 		}),
 	});

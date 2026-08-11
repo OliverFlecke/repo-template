@@ -31,7 +31,7 @@ public static class Organizations
 	{
 		var page = query.Page ?? 1;
 		var pageSize = query.PageSize ?? 20;
-		var sortDescending = query.SortDescending ?? false;
+		var sortDescending = query.Desc ?? false;
 
 		var errors = new Dictionary<string, string[]>();
 		if (page < 1)
@@ -41,7 +41,7 @@ public static class Organizations
 
 		if (pageSize is < 1 or > MaxPageSize)
 		{
-			errors["pageSize"] = [$"PageSize must be between 1 and {MaxPageSize}."];
+			errors["page_size"] = [$"page_size must be between 1 and {MaxPageSize}."];
 		}
 
 		if (errors.Count > 0)
@@ -136,12 +136,16 @@ public sealed record UpdateOrganizationRequest
 /// (page 1, page size 20, ascending, unfiltered) in the handler.</summary>
 public sealed record ListOrganizationsRequest
 {
+	[FromQuery(Name = "page")]
 	public int? Page { get; init; }
 
+	[FromQuery(Name = "page_size")]
 	public int? PageSize { get; init; }
 
-	public bool? SortDescending { get; init; }
+	[FromQuery(Name = "desc")]
+	public bool? Desc { get; init; }
 
 	/// <summary>Case-insensitive substring match against the organization name. Unset or blank means no filtering.</summary>
+	[FromQuery(Name = "search")]
 	public string? Search { get; init; }
 }

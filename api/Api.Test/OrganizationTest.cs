@@ -76,7 +76,7 @@ public sealed class OrganizationTest
 		var second = await client.CreateOrganization($"ZZZ-{Guid.NewGuid()}");
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
-		var page = await client.GetOrganizations("?sortDescending=true");
+		var page = await client.GetOrganizations("?desc=true");
 
 		var relevant = page.Data.Where(o => o.Id == first.Id || o.Id == second.Id).ToList();
 		await Assert.That(relevant.Count).IsEqualTo(2);
@@ -92,7 +92,7 @@ public sealed class OrganizationTest
 		await client.CreateOrganization($"Paging-{Guid.NewGuid()}");
 		await App.Services.DocumentStore().WaitForNonStaleProjectionDataAsync(TimeSpan.FromSeconds(15));
 
-		var page = await client.GetOrganizations("?page=1&pageSize=1");
+		var page = await client.GetOrganizations("?page=1&page_size=1");
 
 		await Assert.That(page.Data.Count).IsEqualTo(1);
 		await Assert.That(page.Page).IsEqualTo(1);
@@ -140,8 +140,8 @@ public sealed class OrganizationTest
 	}
 
 	[Test]
-	[Arguments("?pageSize=0")]
-	[Arguments("?pageSize=101")]
+	[Arguments("?page_size=0")]
+	[Arguments("?page_size=101")]
 	public async Task Organization_List_WithInvalidPageSize_RespondsBadRequest(string query)
 	{
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
