@@ -83,18 +83,18 @@ services:
   # TODO: need to consider whether to use this or some S3 compatable mock
   # Emulator for Azure Storage, used for local file uploads instead of sending
   # files to an actual server.
-  azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.35.0
-    container_name: azurite
-    volumes:
-      - ./tmp/data:/data
-    ports:
-      - "127.0.0.1:10000:10000"
-      - "127.0.0.1:10001:10001"
-      - "127.0.0.1:10002:10002"
-    command: "azurite --blobHost 0.0.0.0 --debug /data/debug.log --skipApiVersionCheck"
-    restart: unless-stopped
-    hostname: azurite
+  # azurite:
+  #   image: mcr.microsoft.com/azure-storage/azurite:3.35.0
+  #   container_name: azurite
+  #   volumes:
+  #     - ./tmp/data:/data
+  #   ports:
+  #     - "127.0.0.1:10000:10000"
+  #     - "127.0.0.1:10001:10001"
+  #     - "127.0.0.1:10002:10002"
+  #   command: "azurite --blobHost 0.0.0.0 --debug /data/debug.log --skipApiVersionCheck"
+  #   restart: unless-stopped
+  #   hostname: azurite
 
   db:
     image: postgres:18-alpine
@@ -119,18 +119,18 @@ services:
 
   # Jaeger is used to collect OpenTelemetry. Visit the UI port to see traces
   # for the various applications.
-  jaeger:
-    image: jaegertracing/all-in-one:2.20.0
-    container_name: jaeger
-    environment:
-      COLLECTOR_ZIPKIN_HOST_PORT: 9412
-      COLLECTOR_OTLP_ENABLED: "true"
-      QUERY_BASE_PATH: /telemetry
-    ports:
-      - "127.0.0.1:4317:4317"
-      - "127.0.0.1:4318:4318"
-      - "127.0.0.1:16686:16686"
-    restart: unless-stopped
+  # jaeger:
+  #   image: jaegertracing/all-in-one:2.20.0
+  #   container_name: jaeger
+  #   environment:
+  #     COLLECTOR_ZIPKIN_HOST_PORT: 9412
+  #     COLLECTOR_OTLP_ENABLED: "true"
+  #     QUERY_BASE_PATH: /telemetry
+  #   ports:
+  #     - "127.0.0.1:4317:4317"
+  #     - "127.0.0.1:4318:4318"
+  #     - "127.0.0.1:16686:16686"
+  #   restart: unless-stopped
 
   kafka:
     image: apache/kafka:4.3.1
