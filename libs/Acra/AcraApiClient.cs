@@ -45,15 +45,21 @@ public sealed class AcraApiClient(
 	/// <param name="name">The company name text to search for.</param>
 	/// <param name="limit">Maximum number of rows to return.</param>
 	/// <param name="offset">Number of rows to skip, for paging.</param>
+	/// <param name="status">Optional exact registration status to filter by, e.g. "Registered" or
+	/// "Deregistered". Applied client-side on the returned page: data.gov.sg's datastore_search
+	/// silently ignores the `filters` param whenever a field-scoped `q` is also present, so
+	/// server-side filtering isn't available here. Total still reflects the unfiltered name match
+	/// count, not the post-filter count.</param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	public async Task<AcraSearchResult> SearchByName(
 		string name,
 		int limit = 100,
 		int offset = 0,
+		string? status = null,
 		CancellationToken cancellationToken = default
 	)
 	{
-		logger.LogInformation("Searching ACRA for entity name {Name}", name);
+		logger.LogInformation("Searching ACRA for entity name {Name} with status {Status}", name, status);
 
 		var result = await ExecuteSearch(new()
 		{
@@ -63,7 +69,11 @@ public sealed class AcraApiClient(
 			["offset"] = offset.ToString(),
 		}, cancellationToken);
 
-		return new AcraSearchResult { Records = result.Records, Total = result.Total };
+		var records = status is null
+			? result.Records
+			: result.Records.Where(r => r.UenStatusDesc == status).ToList();
+
+		return new AcraSearchResult { Records = records, Total = result.Total };
 	}
 
 	[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "All types used are included in the generated code for JsonSerializer.")]

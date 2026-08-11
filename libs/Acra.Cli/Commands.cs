@@ -89,6 +89,10 @@ sealed class SearchNameSettings : CommandSettings
 	[CommandOption("-o|--offset")]
 	[Description("Number of rows to skip, for paging.")]
 	public int Offset { get; init; }
+
+	[CommandOption("-s|--status")]
+	[Description("Filter by exact registration status, e.g. \"Registered\" or \"Deregistered\".")]
+	public string? Status { get; init; }
 }
 
 sealed class SearchNameCommand : AsyncCommand<SearchNameSettings>
@@ -97,7 +101,7 @@ sealed class SearchNameCommand : AsyncCommand<SearchNameSettings>
 	{
 		var client = AcraClientFactory.Create();
 
-		var result = await client.SearchByName(settings.Name, settings.Limit, settings.Offset, cancellationToken);
+		var result = await client.SearchByName(settings.Name, settings.Limit, settings.Offset, settings.Status, cancellationToken);
 		if (result.Records.Count == 0)
 		{
 			AnsiConsole.MarkupLineInterpolated($"[red]No entities found matching '{settings.Name}'[/]");

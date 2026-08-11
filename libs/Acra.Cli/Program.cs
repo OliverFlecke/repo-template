@@ -15,7 +15,8 @@ app.Configure(config =>
 	config.AddCommand<SearchNameCommand>("name")
 		.WithDescription("Search for companies by (partial) name.")
 		.WithExample("name", "ACME")
-		.WithExample("name", "ACME", "--limit", "5");
+		.WithExample("name", "ACME", "--limit", "5")
+		.WithExample("name", "ACME", "--status", "Registered");
 });
 
 return await app.RunAsync(args);

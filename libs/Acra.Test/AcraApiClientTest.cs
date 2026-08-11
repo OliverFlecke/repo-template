@@ -98,6 +98,22 @@ public sealed class AcraApiClientTest
 	}
 
 	[Test]
+	public async Task SearchByName_WithStatusFilter_FiltersToMatchingStatusClientSide()
+	{
+		AcraEntity[] entities =
+		[
+			new() { Uen = "201900004D", EntityName = "ACTIVE PTE LTD", UenStatusDesc = "Registered" },
+			new() { Uen = "201900005E", EntityName = "ACTIVE HOLDINGS PTE LTD", UenStatusDesc = "Deregistered" },
+		];
+		mock.MockSearchByName("ACTIVE", entities, total: 2);
+
+		var result = await client.SearchByName("ACTIVE", status: "Registered");
+
+		await Assert.That(result.Records.Count).IsEqualTo(1);
+		await Assert.That(result.Records[0].Uen).IsEqualTo(entities[0].Uen);
+	}
+
+	[Test]
 	public async Task SearchByUen_WhenApiReturnsError_ThrowsAcraApiException()
 	{
 		mock.MockError("resource_id not found");
