@@ -1,0 +1,23 @@
+name: Test - Acra
+
+on:
+  merge_group:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4.2.4
+        with:
+          install_args: dotnet
+
+      - name: Run tests
+        run: dotnet test libs/Acra.Test/Acra.Test.csproj
