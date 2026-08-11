@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="TUnit" />
+		<PackageReference Include="WireMock.Net" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="../Acra/Acra.csproj" />
+	</ItemGroup>
+</Project>

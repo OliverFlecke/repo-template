@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<RootNamespace>Acra.Cli</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Spectre.Console.Cli" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../Acra/Acra.csproj" />
+	</ItemGroup>
+</Project>
