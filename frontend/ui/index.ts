@@ -42,3 +42,5 @@ export {
 } from "./Table/tableFeatures";
 export type { TextareaProps } from "./Textarea/Textarea";
 export { Textarea } from "./Textarea/Textarea";
+export type { TooltipProps } from "./Tooltip/Tooltip";
+export { Tooltip } from "./Tooltip/Tooltip";

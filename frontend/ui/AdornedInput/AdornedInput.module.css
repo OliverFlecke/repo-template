@@ -16,28 +16,3 @@
 	display: inline-flex;
 	line-height: 0;
 }
-
-.tooltip {
-	position: absolute;
-	bottom: calc(100% + var(--space-2));
-	right: 0;
-	white-space: nowrap;
-	background: var(--fg-primary);
-	color: var(--bg-primary);
-	padding: var(--space-1) var(--space-2);
-	border-radius: var(--radius-sm);
-	font-size: var(--font-size-sm);
-	box-shadow: var(--shadow-sm);
-	opacity: 0;
-	visibility: hidden;
-	pointer-events: none;
-	transition:
-		opacity var(--transition-fast),
-		visibility var(--transition-fast);
-}
-
-.adornment:hover .tooltip,
-.adornment:focus-visible .tooltip {
-	opacity: 1;
-	visibility: visible;
-}
