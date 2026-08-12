@@ -8,6 +8,7 @@ import {
 	sendAccountVerificationEmailMutation,
 	updateAccountEmailMutation,
 	updateAccountNameMutation,
+	updateAccountPasswordMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { AdornedInput, Avatar, Button, FormField, Input } from "@/ui";
 import styles from "./page.module.css";
@@ -16,12 +17,17 @@ export default withAuthenticationRequired(Account, {
 	OnRedirecting: () => <div>Redirecting to the login page...</div>,
 });
 
+// Users on Auth0's database connection have a `sub` claim prefixed like this;
+// social/enterprise connections don't have an Auth0-managed password to change.
+const DATABASE_CONNECTION_SUBJECT_PREFIX = "auth0|";
+
 function Account() {
 	return (
 		<main className={styles.main}>
 			<Header />
 			<NameForm />
 			<EmailForm />
+			<PasswordForm />
 		</main>
 	);
 }
@@ -159,6 +165,64 @@ function EmailForm() {
 					{updateEmail.isPending ? "Updating..." : "Update email"}
 				</Button>
 			)}
+		</form>
+	);
+}
+
+function PasswordForm() {
+	const { user } = useAuth();
+
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const updatePassword = useMutation(updateAccountPasswordMutation());
+
+	if (!user?.profile.sub.startsWith(DATABASE_CONNECTION_SUBJECT_PREFIX)) {
+		return null;
+	}
+
+	const mismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
+	async function handleSubmit(e: FormEvent) {
+		e.preventDefault();
+		await updatePassword.mutateAsync({ body: { password } });
+		setPassword("");
+		setConfirmPassword("");
+	}
+
+	return (
+		<form className={styles.form} onSubmit={handleSubmit}>
+			<FormField label="New password">
+				<Input
+					type="password"
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+					autoComplete="new-password"
+				/>
+			</FormField>
+
+			<FormField label="Confirm new password">
+				<Input
+					type="password"
+					value={confirmPassword}
+					onChange={(e) => setConfirmPassword(e.target.value)}
+					autoComplete="new-password"
+				/>
+			</FormField>
+
+			{mismatch && <p className={styles.error}>Passwords do not match.</p>}
+			{updatePassword.isError && (
+				<p className={styles.error}>Failed to update password.</p>
+			)}
+			{updatePassword.isSuccess && (
+				<p className={styles.success}>Password updated.</p>
+			)}
+
+			<Button
+				type="submit"
+				disabled={updatePassword.isPending || !password || mismatch}
+			>
+				{updatePassword.isPending ? "Updating..." : "Update password"}
+			</Button>
 		</form>
 	);
 }

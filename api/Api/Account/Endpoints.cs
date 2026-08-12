@@ -10,12 +10,18 @@ namespace Api.Account.Endpoint;
 /// <summary>Self-service endpoints for the current user to update their own Auth0 profile.</summary>
 public static class Account
 {
+	/// <summary>Users on Auth0's database connection have a `sub` claim prefixed like this;
+	/// social/enterprise connections (google-oauth2|..., etc.) don't have an Auth0-managed
+	/// password to change.</summary>
+	const string DatabaseConnectionSubjectPrefix = "auth0|";
+
 	/// <summary>Maps the account endpoints into a route group.</summary>
 	public static void MapAccountEndpoints(this RouteGroupBuilder builder)
 	{
 		builder.MapPatch("/name", UpdateName);
 		builder.MapPatch("/email", UpdateEmail);
 		builder.MapPost("/email/verify", SendVerificationEmail);
+		builder.MapPatch("/password", UpdatePassword);
 	}
 
 	[EndpointName("UpdateAccountName")]
@@ -51,6 +57,24 @@ public static class Account
 		await auth0.SendVerificationEmail(currentUser.Id, cancellationToken);
 		return TypedResults.Ok();
 	}
+
+	/// <summary>Updates the current user's password. Only available for users on Auth0's
+	/// database connection.</summary>
+	[EndpointName("UpdateAccountPassword")]
+	static async Task<Results<Ok, ForbidHttpResult>> UpdatePassword(
+		UpdatePasswordRequest body,
+		[FromServices] ICurrentUser currentUser,
+		[FromServices] Auth0ApiClient auth0,
+		CancellationToken cancellationToken)
+	{
+		if (!currentUser.Id.StartsWith(DatabaseConnectionSubjectPrefix, StringComparison.Ordinal))
+		{
+			return TypedResults.Forbid();
+		}
+
+		await auth0.UpdatePassword(currentUser.Id, body.Password, cancellationToken);
+		return TypedResults.Ok();
+	}
 }
 
 public sealed record UpdateNameRequest
@@ -61,4 +85,9 @@ public sealed record UpdateNameRequest
 public sealed record UpdateEmailRequest
 {
 	public required string Email { get; init; }
+}
+
+public sealed record UpdatePasswordRequest
+{
+	public required string Password { get; init; }
 }

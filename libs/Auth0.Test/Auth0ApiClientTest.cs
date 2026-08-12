@@ -61,6 +61,18 @@ public sealed class Auth0ApiClientTest
 	}
 
 	[Test]
+	public async Task UpdatePassword_SendsPatchWithPasswordAndConnection()
+	{
+		mock.MockPatchUser("auth0|abc123");
+
+		await client.UpdatePassword("auth0|abc123", "s3cr3t-p@ssword");
+
+		var request = mock.RequestLog.Single(e => e.RequestMessage?.Path == "/api/v2/users/auth0|abc123").RequestMessage!;
+		await Assert.That(request.Body).Contains("\"password\":\"s3cr3t-p@ssword\"");
+		await Assert.That(request.Body).Contains("\"connection\":\"Username-Password-Authentication\"");
+	}
+
+	[Test]
 	public async Task SendVerificationEmail_PostsJobWithUserId()
 	{
 		mock.MockVerificationEmail();

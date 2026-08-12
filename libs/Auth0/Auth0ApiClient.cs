@@ -42,6 +42,12 @@ public sealed class Auth0ApiClient(
 	public Task UpdateEmail(string userId, string email, CancellationToken cancellationToken = default) =>
 		PatchUser(userId, new UpdateUserRequest { Email = email, Connection = config.Connection, VerifyEmail = true }, cancellationToken);
 
+	/// <summary>Updates a user's password. Only valid for users on the database connection (a
+	/// `sub` starting with `auth0|`) - social/enterprise connections don't have an Auth0-managed
+	/// password to change.</summary>
+	public Task UpdatePassword(string userId, string password, CancellationToken cancellationToken = default) =>
+		PatchUser(userId, new UpdateUserRequest { Password = password, Connection = config.Connection }, cancellationToken);
+
 	/// <summary>Triggers a fresh verification email for the given user.</summary>
 	[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "All types used are included in the generated code for JsonSerializer.")]
 	[UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
@@ -156,6 +162,7 @@ sealed record UpdateUserRequest
 {
 	public string? Name { get; init; }
 	public string? Email { get; init; }
+	public string? Password { get; init; }
 	public string? Connection { get; init; }
 	public bool? VerifyEmail { get; init; }
 }

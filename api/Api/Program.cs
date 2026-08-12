@@ -211,6 +211,7 @@ static Task RunJasperFxCommandsAotSafe(WebApplication app, string[] args) => app
 [JsonSerializable(typeof(AddMemberRequest))]
 [JsonSerializable(typeof(UpdateNameRequest))]
 [JsonSerializable(typeof(UpdateEmailRequest))]
+[JsonSerializable(typeof(UpdatePasswordRequest))]
 [JsonSerializable(typeof(int?))]
 [JsonSerializable(typeof(bool?))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
