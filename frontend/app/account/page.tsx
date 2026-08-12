@@ -1,9 +1,9 @@
 "use client";
 
-import { useAuth, withAuthenticationRequired } from "react-oidc-context";
-import { Avatar, Button, FormField, Input } from "@/ui";
-import styles from "./page.module.css";
 import { BadgeAlert, ShieldCheck } from "lucide-react";
+import { useAuth, withAuthenticationRequired } from "react-oidc-context";
+import { AdornedInput, Avatar, Button, FormField, Input } from "@/ui";
+import styles from "./page.module.css";
 
 export default withAuthenticationRequired(Account, {
 	OnRedirecting: () => <div>Redirecting to the login page...</div>,
@@ -48,18 +48,22 @@ function ProfileForm() {
 				<Input value={profile.name} readOnly title="Your full legal name" />
 			</FormField>
 
-			{profile.email_verified ? (
-				<ShieldCheck
-					color="var(--color-success)"
-					size={20}
-					xlinkTitle="Email verified"
-				/>
-			) : (
-				<BadgeAlert color="var(--color-warning)" size={20} />
-			)}
-
 			<FormField label="Email">
-				<Input value={profile.email} readOnly title="Your email address" />
+				<AdornedInput
+					value={profile.email}
+					readOnly
+					title="Your email address"
+					icon={
+						profile.email_verified ? (
+							<ShieldCheck size={16} color="var(--color-success)" />
+						) : (
+							<BadgeAlert size={16} color="var(--color-warning)" />
+						)
+					}
+					tooltip={
+						profile.email_verified ? "Email verified" : "Email not verified"
+					}
+				/>
 			</FormField>
 
 			<Button>Update profile</Button>
