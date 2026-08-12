@@ -33,6 +33,10 @@
 	color: var(--color-danger);
 }
 
+.success {
+	color: var(--color-success);
+}
+
 .details {
 	display: flex;
 	flex-direction: column;

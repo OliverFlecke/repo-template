@@ -22,6 +22,8 @@ public sealed class Auth0ApiClient(
 	static Auth0ApiClient()
 	{
 		Json.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+		Json.RespectNullableAnnotations = true;
+		Json.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 		Json.TypeInfoResolverChain.Insert(0, Auth0JsonSerializerContext.Default);
 	}
 
@@ -32,12 +34,15 @@ public sealed class Auth0ApiClient(
 
 	/// <summary>Updates a user's display name.</summary>
 	public Task UpdateName(string userId, string name, CancellationToken cancellationToken = default) =>
-		PatchUser(userId, new UpdateUserRequest { Name = name }, cancellationToken);
+		PatchUser(userId, new UpdateUserRequest { Name = name, Connection = config.Connection }, cancellationToken);
 
-	/// <summary>Updates a user's email address. Auth0 resets email_verified to false and sends its
-	/// own verification email as a side effect of this call.</summary>
-	public Task UpdateEmail(string userId, string email, CancellationToken cancellationToken = default) =>
-		PatchUser(userId, new UpdateUserRequest { Email = email, Connection = config.Connection }, cancellationToken);
+	/// <summary>Updates a user's email address. Auth0 resets email_verified to false as a side
+	/// effect of this call, so this also triggers a fresh verification email.</summary>
+	public async Task UpdateEmail(string userId, string email, CancellationToken cancellationToken = default)
+	{
+		await PatchUser(userId, new UpdateUserRequest { Email = email, Connection = config.Connection }, cancellationToken);
+		await SendVerificationEmail(userId, cancellationToken);
+	}
 
 	/// <summary>Triggers a fresh verification email for the given user.</summary>
 	[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "All types used are included in the generated code for JsonSerializer.")]
@@ -95,9 +100,9 @@ public sealed class Auth0ApiClient(
 
 			var response = await http.PostAsJsonAsync("/oauth/token", new TokenRequest
 			{
-				ClientId = config.ManagementClientId,
-				ClientSecret = config.ManagementClientSecret,
-				Audience = $"{config.Domain}api/v2/",
+				ClientId = config.ClientId,
+				ClientSecret = config.ClientSecret,
+				Audience = $"{config.Host}api/v2/",
 			}, Json, cancellationToken);
 
 			await EnsureSuccess(response, cancellationToken);
@@ -123,7 +128,10 @@ public sealed class Auth0ApiClient(
 			return;
 		}
 
-		var error = await response.Content.ReadFromJsonAsync<Auth0ErrorResponse>(Json, cancellationToken: cancellationToken);
+		var body = await response.Content.ReadAsStringAsync(cancellationToken);
+		logger.LogWarning("Failed request body from Auth0: {Body}", body);
+
+		var error = JsonSerializer.Deserialize<Auth0ErrorResponse>(body, Json);
 		throw new Auth0ApiException(error?.Message ?? $"Auth0 API returned {(int)response.StatusCode} {response.ReasonPhrase}");
 	}
 }

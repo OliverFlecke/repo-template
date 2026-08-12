@@ -20,7 +20,8 @@ function Account() {
 	return (
 		<main className={styles.main}>
 			<Header />
-			<ProfileForm />
+			<NameForm />
+			<EmailForm />
 		</main>
 	);
 }
@@ -43,33 +44,21 @@ function Header() {
 	);
 }
 
-function ProfileForm() {
+function NameForm() {
 	const auth = useAuth();
 	const { user } = auth;
 
 	const [name, setName] = useState(user?.profile.name ?? "");
-	const [email, setEmail] = useState(user?.profile.email ?? "");
-
 	const updateName = useMutation(updateAccountNameMutation());
-	const updateEmail = useMutation(updateAccountEmailMutation());
-	const sendVerification = useMutation(sendAccountVerificationEmailMutation());
 
 	if (!user) return null;
 
-	const { profile } = user;
-	const nameChanged = name !== (profile.name ?? "");
-	const emailChanged = email !== (profile.email ?? "");
-	const isPending = updateName.isPending || updateEmail.isPending;
+	const nameChanged = name !== (user.profile.name ?? "");
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
-
-		await Promise.all([
-			nameChanged ? updateName.mutateAsync({ body: { name } }) : null,
-			emailChanged ? updateEmail.mutateAsync({ body: { email } }) : null,
-		]);
-
-		// Refresh the ID token so profile/email_verified reflect what we just wrote.
+		await updateName.mutateAsync({ body: { name } });
+		// Refresh the ID token so the header reflects the new name.
 		await auth.signinSilent();
 	}
 
@@ -83,6 +72,38 @@ function ProfileForm() {
 				/>
 			</FormField>
 
+			{updateName.isError && (
+				<p className={styles.error}>Failed to update profile.</p>
+			)}
+
+			<Button type="submit" disabled={updateName.isPending || !nameChanged}>
+				{updateName.isPending ? "Updating..." : "Update profile"}
+			</Button>
+		</form>
+	);
+}
+
+function EmailForm() {
+	const auth = useAuth();
+	const { user } = auth;
+
+	const [email, setEmail] = useState(user?.profile.email ?? "");
+	const updateEmail = useMutation(updateAccountEmailMutation());
+	const sendVerification = useMutation(sendAccountVerificationEmailMutation());
+
+	if (!user) return null;
+
+	const { profile } = user;
+	const emailChanged = email !== (profile.email ?? "");
+
+	async function handleSubmit(e: FormEvent) {
+		e.preventDefault();
+		// The backend sends a fresh verification email as part of this call.
+		await updateEmail.mutateAsync({ body: { email } });
+	}
+
+	return (
+		<form className={styles.form} onSubmit={handleSubmit}>
 			<FormField label="Email">
 				<AdornedInput
 					type="email"
@@ -102,7 +123,7 @@ function ProfileForm() {
 				/>
 			</FormField>
 
-			{!profile.email_verified && (
+			{!profile.email_verified && !updateEmail.isSuccess && (
 				<Button
 					type="button"
 					variant="text"
@@ -119,16 +140,25 @@ function ProfileForm() {
 				</Button>
 			)}
 
-			{(updateName.isError || updateEmail.isError) && (
-				<p className={styles.error}>Failed to update profile.</p>
+			{updateEmail.isError && (
+				<p className={styles.error}>Failed to update email.</p>
 			)}
 
-			<Button
-				type="submit"
-				disabled={isPending || (!nameChanged && !emailChanged)}
-			>
-				{isPending ? "Updating..." : "Update profile"}
-			</Button>
+			{updateEmail.isSuccess ? (
+				<>
+					<p className={styles.success}>
+						Verification email sent to {email}. Please sign in again to confirm
+						your new address.
+					</p>
+					<Button type="button" onClick={() => auth.signinRedirect()}>
+						Sign in again
+					</Button>
+				</>
+			) : (
+				<Button type="submit" disabled={updateEmail.isPending || !emailChanged}>
+					{updateEmail.isPending ? "Updating..." : "Update email"}
+				</Button>
+			)}
 		</form>
 	);
 }

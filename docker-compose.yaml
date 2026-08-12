@@ -61,6 +61,9 @@ services:
       - Database__Password=postgres
       - Database__Database=postgres
       - OpenFga__Host=http://openfga:8080
+      - Auth0__Host=https://oliverflecke.eu.auth0.com/
+      - Auth0__ClientId=${AUTH0_CLIENT_ID}
+      - Auth0__ClientSecret=${AUTH0_CLIENT_SECRET}
       - Cors__AllowedOrigins__0=https://localhost:3000
     volumes:
       - ./tmp/openfga:/shared:ro
@@ -89,7 +92,7 @@ services:
     ports:
       # 3000 is left free for a locally-run `pnpm dev` frontend.
       - "127.0.0.1:4000:4000"
-      - "127.0.0.1:8080:8080"
+      # - "127.0.0.1:8080:8080"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./frontend/certificates:/certs:ro

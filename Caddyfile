@@ -22,7 +22,7 @@
 }
 
 # Direct access to the api, e.g. for scripts or debugging.
-:8080 {
-	tls /certs/localhost.pem /certs/localhost-key.pem
-	reverse_proxy api:8080
-}
+# :8080 {
+# 	tls /certs/localhost.pem /certs/localhost-key.pem
+# 	reverse_proxy api:8080
+# }

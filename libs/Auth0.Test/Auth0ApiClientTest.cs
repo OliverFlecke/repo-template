@@ -15,9 +15,9 @@ public sealed class Auth0ApiClientTest
 
 		var config = new Auth0Config
 		{
-			Domain = mock.Host,
-			ManagementClientId = "client-id",
-			ManagementClientSecret = "client-secret",
+			Host = mock.Host,
+			ClientId = "client-id",
+			ClientSecret = "client-secret",
 		};
 		client = new Auth0ApiClient(NullLogger<Auth0ApiClient>.Instance, config, new HttpClient { BaseAddress = mock.Host });
 	}
@@ -41,12 +41,25 @@ public sealed class Auth0ApiClientTest
 	public async Task UpdateEmail_SendsPatchWithEmailAndConnection()
 	{
 		mock.MockPatchUser("auth0|abc123");
+		mock.MockVerificationEmail();
 
 		await client.UpdateEmail("auth0|abc123", "jane@example.com");
 
 		var request = mock.RequestLog.Single(e => e.RequestMessage?.Path == "/api/v2/users/auth0|abc123").RequestMessage!;
 		await Assert.That(request.Body).Contains("\"email\":\"jane@example.com\"");
 		await Assert.That(request.Body).Contains("\"connection\":\"Username-Password-Authentication\"");
+	}
+
+	[Test]
+	public async Task UpdateEmail_AlsoSendsVerificationEmail()
+	{
+		mock.MockPatchUser("auth0|abc123");
+		mock.MockVerificationEmail();
+
+		await client.UpdateEmail("auth0|abc123", "jane@example.com");
+
+		var request = mock.RequestLog.Single(e => e.RequestMessage?.Path == "/api/v2/jobs/verification-email").RequestMessage!;
+		await Assert.That(request.Body).Contains("\"user_id\":\"auth0|abc123\"");
 	}
 
 	[Test]

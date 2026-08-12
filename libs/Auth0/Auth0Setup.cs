@@ -16,10 +16,8 @@ public static class Auth0Setup
 		builder.Services.AddHttpClient<Auth0ApiClient>((sp, http) =>
 			{
 				var config = sp.GetRequiredService<IOptions<Auth0Config>>().Value;
-				http.BaseAddress = config.Domain;
+				http.BaseAddress = config.Host;
 			})
-			// Retries transient failures (network errors, timeouts, 5xx, 408, 429) with
-			// exponential backoff + jitter, plus a circuit breaker and per-attempt timeout.
 			.AddStandardResilienceHandler();
 	}
 }

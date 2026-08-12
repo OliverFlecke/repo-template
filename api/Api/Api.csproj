@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 	<PropertyGroup>
 		<!-- <PublishAot>true</PublishAot> -->
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<WarningsAsErrors>IL2026;IL2046;IL2055;IL2065;IL2067;IL2070;IL2072;IL2075;IL2090;IL2091;IL2111;IL3050;IL3051</WarningsAsErrors>
-	</PropertyGroup>
+	  <UserSecretsId>672bdcdd-9964-4731-93b9-deb4afa62231</UserSecretsId>
+  </PropertyGroup>
 
 	<PropertyGroup>
 		<OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
