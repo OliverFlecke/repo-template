@@ -36,13 +36,11 @@ public sealed class Auth0ApiClient(
 	public Task UpdateName(string userId, string name, CancellationToken cancellationToken = default) =>
 		PatchUser(userId, new UpdateUserRequest { Name = name, Connection = config.Connection }, cancellationToken);
 
-	/// <summary>Updates a user's email address. Auth0 resets email_verified to false as a side
-	/// effect of this call, so this also triggers a fresh verification email.</summary>
-	public async Task UpdateEmail(string userId, string email, CancellationToken cancellationToken = default)
-	{
-		await PatchUser(userId, new UpdateUserRequest { Email = email, Connection = config.Connection }, cancellationToken);
-		await SendVerificationEmail(userId, cancellationToken);
-	}
+	/// <summary>Updates a user's email address. Setting verify_email makes Auth0 reset
+	/// email_verified to false and send a fresh verification email itself, as part of this
+	/// same call.</summary>
+	public Task UpdateEmail(string userId, string email, CancellationToken cancellationToken = default) =>
+		PatchUser(userId, new UpdateUserRequest { Email = email, Connection = config.Connection, VerifyEmail = true }, cancellationToken);
 
 	/// <summary>Triggers a fresh verification email for the given user.</summary>
 	[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "All types used are included in the generated code for JsonSerializer.")]
@@ -159,6 +157,7 @@ sealed record UpdateUserRequest
 	public string? Name { get; init; }
 	public string? Email { get; init; }
 	public string? Connection { get; init; }
+	public bool? VerifyEmail { get; init; }
 }
 
 sealed record VerificationEmailRequest

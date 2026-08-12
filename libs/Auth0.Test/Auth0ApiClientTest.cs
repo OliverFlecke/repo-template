@@ -41,7 +41,6 @@ public sealed class Auth0ApiClientTest
 	public async Task UpdateEmail_SendsPatchWithEmailAndConnection()
 	{
 		mock.MockPatchUser("auth0|abc123");
-		mock.MockVerificationEmail();
 
 		await client.UpdateEmail("auth0|abc123", "jane@example.com");
 
@@ -51,15 +50,14 @@ public sealed class Auth0ApiClientTest
 	}
 
 	[Test]
-	public async Task UpdateEmail_AlsoSendsVerificationEmail()
+	public async Task UpdateEmail_SetsVerifyEmailSoAuth0SendsItItself()
 	{
 		mock.MockPatchUser("auth0|abc123");
-		mock.MockVerificationEmail();
 
 		await client.UpdateEmail("auth0|abc123", "jane@example.com");
 
-		var request = mock.RequestLog.Single(e => e.RequestMessage?.Path == "/api/v2/jobs/verification-email").RequestMessage!;
-		await Assert.That(request.Body).Contains("\"user_id\":\"auth0|abc123\"");
+		var request = mock.RequestLog.Single(e => e.RequestMessage?.Path == "/api/v2/users/auth0|abc123").RequestMessage!;
+		await Assert.That(request.Body).Contains("\"verify_email\":true");
 	}
 
 	[Test]
