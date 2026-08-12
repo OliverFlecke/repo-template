@@ -19,6 +19,20 @@
 	color: var(--text-secondary);
 }
 
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+
+.resendButton {
+	align-self: flex-start;
+}
+
+.error {
+	color: var(--color-danger);
+}
+
 .details {
 	display: flex;
 	flex-direction: column;

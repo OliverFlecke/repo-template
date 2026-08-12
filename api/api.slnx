@@ -2,4 +2,6 @@
 	<Project Path="Api/Api.csproj" />
 	<Project Path="Api.Test/Api.Test.csproj" />
 	<Project Path="../libs/OpenFGA/Api.OpenFGA.csproj" />
+	<Project Path="../libs/Auth0/Auth0.csproj" />
+	<Project Path="../libs/Auth0.Test/Auth0.Test.csproj" />
 </Solution>

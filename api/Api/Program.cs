@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
+using Api.Account.Endpoint;
 using Api.Auth;
 using Api.Common;
 using Api.Config;
@@ -9,6 +10,8 @@ using Api.OpenApi;
 using Api.OpenFGA;
 using Api.Org.Endpoint;
 using Api.Org.Response;
+
+using Auth0;
 
 using JasperFx;
 using JasperFx.CodeGeneration;
@@ -65,6 +68,7 @@ builder.Services.AddProblemDetails();
 
 builder.SetupAuthentication();
 builder.SetupOpenFga();
+builder.SetupAuth0();
 builder.Services.AddHealthChecks();
 
 builder.Services
@@ -172,6 +176,8 @@ adminEndpoints.MapGroup("organization").MapOrganizationEndpoints();
 var organizationEndpoints = api.MapGroup("v1/organization");
 organizationEndpoints.MapOrganizationMemberEndpoints();
 
+api.MapGroup("v1/account").MapAccountEndpoints();
+
 app.MapHealthChecks("/healthz").AllowAnonymous();
 
 app.Logger.LogInformation("Starting API in environment {Environment}", app.Environment.EnvironmentName);
@@ -203,6 +209,8 @@ static Task RunJasperFxCommandsAotSafe(WebApplication app, string[] args) => app
 [JsonSerializable(typeof(CreateOrganizationRequest))]
 [JsonSerializable(typeof(UpdateOrganizationRequest))]
 [JsonSerializable(typeof(AddMemberRequest))]
+[JsonSerializable(typeof(UpdateNameRequest))]
+[JsonSerializable(typeof(UpdateEmailRequest))]
 [JsonSerializable(typeof(int?))]
 [JsonSerializable(typeof(bool?))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext

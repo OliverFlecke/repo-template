@@ -37,6 +37,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="../../libs/OpenFGA/Api.OpenFGA.csproj" />
+		<ProjectReference Include="../../libs/Auth0/Auth0.csproj" />
 	</ItemGroup>
 
 	<!--

@@ -1,7 +1,14 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { BadgeAlert, ShieldCheck } from "lucide-react";
+import { type FormEvent, useState } from "react";
 import { useAuth, withAuthenticationRequired } from "react-oidc-context";
+import {
+	sendAccountVerificationEmailMutation,
+	updateAccountEmailMutation,
+	updateAccountNameMutation,
+} from "@/api/@tanstack/react-query.gen";
 import { AdornedInput, Avatar, Button, FormField, Input } from "@/ui";
 import styles from "./page.module.css";
 
@@ -37,21 +44,50 @@ function Header() {
 }
 
 function ProfileForm() {
-	const { user } = useAuth();
+	const auth = useAuth();
+	const { user } = auth;
+
+	const [name, setName] = useState(user?.profile.name ?? "");
+	const [email, setEmail] = useState(user?.profile.email ?? "");
+
+	const updateName = useMutation(updateAccountNameMutation());
+	const updateEmail = useMutation(updateAccountEmailMutation());
+	const sendVerification = useMutation(sendAccountVerificationEmailMutation());
+
 	if (!user) return null;
 
 	const { profile } = user;
+	const nameChanged = name !== (profile.name ?? "");
+	const emailChanged = email !== (profile.email ?? "");
+	const isPending = updateName.isPending || updateEmail.isPending;
+
+	async function handleSubmit(e: FormEvent) {
+		e.preventDefault();
+
+		await Promise.all([
+			nameChanged ? updateName.mutateAsync({ body: { name } }) : null,
+			emailChanged ? updateEmail.mutateAsync({ body: { email } }) : null,
+		]);
+
+		// Refresh the ID token so profile/email_verified reflect what we just wrote.
+		await auth.signinSilent();
+	}
 
 	return (
-		<>
+		<form className={styles.form} onSubmit={handleSubmit}>
 			<FormField label="Name">
-				<Input value={profile.name} readOnly title="Your full legal name" />
+				<Input
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+					title="Your full legal name"
+				/>
 			</FormField>
 
 			<FormField label="Email">
 				<AdornedInput
-					value={profile.email}
-					readOnly
+					type="email"
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
 					title="Your email address"
 					icon={
 						profile.email_verified ? (
@@ -66,7 +102,33 @@ function ProfileForm() {
 				/>
 			</FormField>
 
-			<Button>Update profile</Button>
-		</>
+			{!profile.email_verified && (
+				<Button
+					type="button"
+					variant="text"
+					size="sm"
+					className={styles.resendButton}
+					disabled={sendVerification.isPending}
+					onClick={() => sendVerification.mutate({})}
+				>
+					{sendVerification.isPending
+						? "Sending..."
+						: sendVerification.isSuccess
+							? "Verification email sent"
+							: "Resend verification email"}
+				</Button>
+			)}
+
+			{(updateName.isError || updateEmail.isError) && (
+				<p className={styles.error}>Failed to update profile.</p>
+			)}
+
+			<Button
+				type="submit"
+				disabled={isPending || (!nameChanged && !emailChanged)}
+			>
+				{isPending ? "Updating..." : "Update profile"}
+			</Button>
+		</form>
 	);
 }
