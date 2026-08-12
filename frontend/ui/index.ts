@@ -1,3 +1,5 @@
+export type { AvatarProps, AvatarSize } from "./Avatar/Avatar";
+export { Avatar } from "./Avatar/Avatar";
 export type {
 	ButtonColor,
 	ButtonProps,

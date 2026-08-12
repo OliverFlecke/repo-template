@@ -38,6 +38,9 @@ test("user can log in through Auth0 and see their account", async ({
 	}
 
 	await expect(page).toHaveURL("/");
-	await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
-	await expect(page.getByText(email)).toBeVisible();
+	const userMenu = page.getByRole("button", { name: email });
+	await expect(userMenu).toBeVisible();
+
+	await userMenu.hover();
+	await expect(page.getByRole("menuitem", { name: "Sign out" })).toBeVisible();
 });
