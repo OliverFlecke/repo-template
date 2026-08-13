@@ -73,13 +73,27 @@ public sealed class Auth0ApiClient(
 		return await response.Content.ReadFromJsonAsync<UserProfile>(Json, cancellationToken);
 	}
 
-	/// <summary>Fetches profiles for a set of users, keyed by user id. Users Auth0 doesn't know
-	/// about (e.g. deleted since) are omitted rather than failing the whole batch.</summary>
+	/// <summary>Fetches profiles for a set of users, keyed by user id. This is a best-effort
+	/// enrichment lookup: users Auth0 doesn't know about (e.g. deleted since) and users a failed
+	/// or unreachable Auth0 request couldn't be fetched for are both omitted rather than failing
+	/// the whole batch - callers are expected to fall back to something else (e.g. the raw user
+	/// id) for any user missing from the result.</summary>
 	public async Task<IReadOnlyDictionary<string, UserProfile>> GetUsers(
 		IEnumerable<string> userIds,
 		CancellationToken cancellationToken = default)
 	{
-		var profiles = await Task.WhenAll(userIds.Select(async userId => (userId, profile: await GetUser(userId, cancellationToken))));
+		var profiles = await Task.WhenAll(userIds.Select(async userId =>
+		{
+			try
+			{
+				return (userId, profile: await GetUser(userId, cancellationToken));
+			}
+			catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+			{
+				logger.LogWarning(ex, "Failed to fetch Auth0 profile for user {UserId}", userId);
+				return (userId, profile: null);
+			}
+		}));
 		return profiles.Where(p => p.profile is not null).ToDictionary(p => p.userId, p => p.profile!);
 	}
 

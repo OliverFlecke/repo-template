@@ -106,6 +106,18 @@ public sealed class Auth0ApiClientTest
 	}
 
 	[Test]
+	public async Task GetUsers_OmitsRatherThanThrowsWhenAuth0IsUnreachableOrErrors()
+	{
+		mock.MockGetUser("auth0|abc123", "Jane Doe");
+		mock.MockError("/api/v2/users/auth0|broken", 500, "internal error");
+
+		var profiles = await client.GetUsers(["auth0|abc123", "auth0|broken"]);
+
+		await Assert.That(profiles.ContainsKey("auth0|abc123")).IsTrue();
+		await Assert.That(profiles.ContainsKey("auth0|broken")).IsFalse();
+	}
+
+	[Test]
 	public async Task SendVerificationEmail_PostsJobWithUserId()
 	{
 		mock.MockVerificationEmail();
