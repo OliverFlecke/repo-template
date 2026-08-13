@@ -48,10 +48,11 @@ test("unauthenticated user sees a sign-in prompt for a valid invite, then joins 
 	await page.getByRole("button", { name: "Invite member" }).click();
 	const inviteLink = await page.locator("input[readonly]").inputValue();
 
-	// force: true - Next's dev-mode overlay badge sits on top of the sidebar
-	// footer and intercepts the click otherwise; a production build wouldn't
-	// have this overlay at all.
-	await page.getByRole("button", { name: "Log out" }).click({ force: true });
+	// dispatchEvent bypasses hit-testing: Next's dev-mode overlay badge sits on
+	// top of the sidebar footer, so a real (or force:true, which still hit-tests)
+	// click lands on the overlay instead. Not an issue in a production build,
+	// which doesn't render this overlay at all.
+	await page.getByRole("button", { name: "Log out" }).dispatchEvent("click");
 	await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 
 	const token = new URL(inviteLink).searchParams.get("token");
