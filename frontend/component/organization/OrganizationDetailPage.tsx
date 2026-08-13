@@ -5,10 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useAuth } from "react-oidc-context";
 import {
-	deleteApiV1OrganizationByIdMemberByUserIdMutation,
-	getApiV1OrganizationByIdOptions,
-	getApiV1OrganizationByIdQueryKey,
-	postApiV1OrganizationByIdInviteMutation,
+	createOrganizationInviteMutation,
+	getOrganizationOptions,
+	getOrganizationQueryKey,
+	removeOrganizationMemberMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { Button } from "@/ui/Button/Button";
 import { FormField } from "@/ui/FormField/FormField";
@@ -35,12 +35,12 @@ function OrganizationDetailContent() {
 		isLoading,
 		isError,
 	} = useQuery({
-		...getApiV1OrganizationByIdOptions({ path: { id } }),
+		...getOrganizationOptions({ path: { id } }),
 		enabled: id !== "",
 	});
 
 	const { mutate, isPending, error } = useMutation({
-		...postApiV1OrganizationByIdInviteMutation(),
+		...createOrganizationInviteMutation(),
 		onSuccess: (invite) => {
 			setInviteLink(`${window.location.origin}/join?token=${invite.id}`);
 			setEmail("");
@@ -48,10 +48,10 @@ function OrganizationDetailContent() {
 	});
 
 	const { mutate: removeMember } = useMutation({
-		...deleteApiV1OrganizationByIdMemberByUserIdMutation(),
+		...removeOrganizationMemberMutation(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: getApiV1OrganizationByIdQueryKey({ path: { id } }),
+				queryKey: getOrganizationQueryKey({ path: { id } }),
 			});
 		},
 	});

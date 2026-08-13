@@ -71,6 +71,7 @@ public static class Organizations
 		});
 	}
 
+	[EndpointName("CreateOrganizationAdmin")]
 	static async Task<Results<Created<Organization>, UnprocessableEntity>>
 	CreateOrganization(
 		[FromServices] IDocumentSession session,
@@ -87,6 +88,7 @@ public static class Organizations
 		return TypedResults.Created($"/organization/{org.Id}", org);
 	}
 
+	[EndpointName("UpdateOrganizationAdmin")]
 	static async Task<Results<Ok<Organization>, NotFound>> UpdateOrganization(
 		Guid id,
 		UpdateOrganizationRequest body,
@@ -106,6 +108,7 @@ public static class Organizations
 
 	/// <summary>Deletes an organization. Idempotent: responds 200 whether an organization was actually
 	/// deleted by this call or was already gone (never existed, or already deleted).</summary>
+	[EndpointName("DeleteOrganizationAdmin")]
 	static async Task<Ok> DeleteOrganization(
 		Guid id,
 		[FromServices] IDocumentSession session)

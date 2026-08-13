@@ -11,8 +11,8 @@ import {
 } from "react";
 import { useAuth } from "react-oidc-context";
 import {
-	getApiV1OrganizationOptions,
-	getApiV1OrganizationQueryKey,
+	getMyOrganizationsOptions,
+	getMyOrganizationsQueryKey,
 } from "@/api/@tanstack/react-query.gen";
 import type { OrganizationMembership } from "@/api/types.gen";
 
@@ -43,7 +43,7 @@ export default function OrganizationProvider({
 	>(undefined);
 
 	const { data, isLoading } = useQuery({
-		...getApiV1OrganizationOptions(),
+		...getMyOrganizationsOptions(),
 		enabled: isAuthenticated,
 	});
 	const organizations = useMemo(() => data ?? [], [data]);
@@ -53,7 +53,7 @@ export default function OrganizationProvider({
 			// Otherwise a different user signing in on the same browser would
 			// briefly see the previous user's organizations: a disabled query
 			// keeps its last data rather than clearing it.
-			queryClient.removeQueries({ queryKey: getApiV1OrganizationQueryKey() });
+			queryClient.removeQueries({ queryKey: getMyOrganizationsQueryKey() });
 		}
 		setCurrentOrganizationId(
 			isAuthenticated
