@@ -4,6 +4,7 @@ import "./globals.css";
 import type { PropsWithChildren } from "react";
 import AuthProvider from "@/component/auth/Provider";
 import Nav from "@/component/nav/Nav";
+import OrganizationProvider from "@/component/organization/OrganizationProvider";
 import QueryProvider from "@/component/QueryProvider";
 import styles from "./layout.module.css";
 
@@ -27,12 +28,14 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
 		<html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
 			<body>
 				<AuthProvider>
-					<div className={styles.shell}>
-						<Nav />
-						<div className={styles.content}>
-							<QueryProvider>{children}</QueryProvider>
-						</div>
-					</div>
+					<QueryProvider>
+						<OrganizationProvider>
+							<div className={styles.shell}>
+								<Nav />
+								<div className={styles.content}>{children}</div>
+							</div>
+						</OrganizationProvider>
+					</QueryProvider>
 				</AuthProvider>
 			</body>
 		</html>
