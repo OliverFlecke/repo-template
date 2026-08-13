@@ -8,9 +8,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Auth0;
 
-/// <summary>Typed client for the slice of Auth0's Management API needed to let a signed-in user
+/// <summary>
+/// Typed client for the slice of Auth0's Management API needed to let a signed-in user
 /// update their own profile. Authenticates itself against the Management API via the
-/// client_credentials grant, caching the resulting token until shortly before it expires.</summary>
+/// client_credentials grant, caching the resulting token until shortly before it expires.
+/// </summary>
 public sealed class Auth0ApiClient(
 	ILogger<Auth0ApiClient> logger,
 	Auth0Config config,
@@ -36,15 +38,18 @@ public sealed class Auth0ApiClient(
 	public Task UpdateName(string userId, string name, CancellationToken cancellationToken = default) =>
 		PatchUser(userId, new UpdateUserRequest { Name = name, Connection = config.Connection }, cancellationToken);
 
-	/// <summary>Updates a user's email address. Setting verify_email makes Auth0 reset
-	/// email_verified to false and send a fresh verification email itself, as part of this
-	/// same call.</summary>
+	/// <summary>
+	/// Updates a user's email address. Setting verify_email makes Auth0 reset email_verified to
+	/// false and send a fresh verification email itself, as part of this same call.
+	/// </summary>
 	public Task UpdateEmail(string userId, string email, CancellationToken cancellationToken = default) =>
 		PatchUser(userId, new UpdateUserRequest { Email = email, Connection = config.Connection, VerifyEmail = true }, cancellationToken);
 
-	/// <summary>Updates a user's password. Only valid for users on the database connection (a
-	/// `sub` starting with `auth0|`) - social/enterprise connections don't have an Auth0-managed
-	/// password to change.</summary>
+	/// <summary>
+	/// Updates a user's password. Only valid for users on the database connection (a `sub`
+	/// starting with `auth0|`) - social/enterprise connections don't have an Auth0-managed
+	/// password to change.
+	/// </summary>
 	public Task UpdatePassword(string userId, string password, CancellationToken cancellationToken = default) =>
 		PatchUser(userId, new UpdateUserRequest { Password = password, Connection = config.Connection }, cancellationToken);
 
@@ -135,8 +140,20 @@ public sealed class Auth0ApiClient(
 		var body = await response.Content.ReadAsStringAsync(cancellationToken);
 		logger.LogWarning("Failed request body from Auth0: {Body}", body);
 
-		var error = JsonSerializer.Deserialize<Auth0ErrorResponse>(body, Json);
-		throw new Auth0ApiException(error?.Message ?? $"Auth0 API returned {(int)response.StatusCode} {response.ReasonPhrase}");
+		// Auth0 itself always returns a JSON error body, but an intermediary (a gateway 502
+		// during an outage, a proxy timeout page) might not - fall back to the status code
+		// instead of letting a JsonException from a non-JSON body mask the real failure.
+		string? message;
+		try
+		{
+			message = JsonSerializer.Deserialize<Auth0ErrorResponse>(body, Json)?.Message;
+		}
+		catch (JsonException)
+		{
+			message = null;
+		}
+
+		throw new Auth0ApiException(message ?? $"Auth0 API returned {(int)response.StatusCode} {response.ReasonPhrase}");
 	}
 }
 

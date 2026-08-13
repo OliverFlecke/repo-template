@@ -1,4 +1,6 @@
-﻿using Marten;
+﻿using Auth0.Test;
+
+using Marten;
 using Marten.Events.Daemon.Coordination;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,6 +25,9 @@ public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncI
 
 	[ClassDataSource<OpenFgaMock>(Shared = SharedType.PerTestSession)]
 	public required OpenFgaMock OpenFga { get; init; } = null!;
+
+	[ClassDataSource<Auth0Mock>(Shared = SharedType.PerTestSession)]
+	public required Auth0Mock Auth0 { get; init; } = null!;
 
 	public async Task InitializeAsync()
 	{
@@ -50,6 +55,9 @@ public class WebApplicationFactory : TestWebApplicationFactory<Program>, IAsyncI
 				{ "OpenFga:Host", OpenFga.Host.ToString() },
 				{ "OpenFga:StoreId", "test-store" },
 				{ "OpenFga:ModelId", "test-model" },
+				{ "Auth0:Host", Auth0.Host.ToString() },
+				{ "Auth0:ClientId", "test-client-id" },
+				{ "Auth0:ClientSecret", "test-client-secret" },
 			});
 		});
 

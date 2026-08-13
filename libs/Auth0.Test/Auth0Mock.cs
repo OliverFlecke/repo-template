@@ -6,9 +6,10 @@ using WireMock.Server;
 
 namespace Auth0.Test;
 
-/// <summary>Reusable WireMock stub for the Auth0 endpoints Auth0ApiClient calls. Add a
-/// ProjectReference to this test project to reuse it when testing code that calls
-/// Auth0ApiClient.</summary>
+/// <summary>
+/// Reusable WireMock stub for the Auth0 endpoints Auth0ApiClient calls. Add a ProjectReference
+/// to this test project to reuse it when testing code that calls Auth0ApiClient.
+/// </summary>
 public sealed class Auth0Mock : IAsyncInitializer, IAsyncDisposable
 {
 	WireMockServer server = null!;
@@ -58,6 +59,17 @@ public sealed class Auth0Mock : IAsyncInitializer, IAsyncDisposable
 		server
 			.Given(Request.Create().WithPath(path))
 			.RespondWith(Response.Create().WithStatusCode(statusCode).WithBodyAsJson(new { message }));
+	}
+
+	/// <summary>
+	/// Simulates a failure that doesn't come from Auth0 itself - a gateway/proxy returning a
+	/// plain-text or HTML error page instead of Auth0's usual JSON error body.
+	/// </summary>
+	public void MockNonJsonError(string path, int statusCode, string body)
+	{
+		server
+			.Given(Request.Create().WithPath(path))
+			.RespondWith(Response.Create().WithStatusCode(statusCode).WithBody(body));
 	}
 
 	public ValueTask DisposeAsync()

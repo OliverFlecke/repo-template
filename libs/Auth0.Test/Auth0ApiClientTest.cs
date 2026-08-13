@@ -103,4 +103,13 @@ public sealed class Auth0ApiClientTest
 			.Throws<Auth0ApiException>()
 			.WithMessage("email format is invalid");
 	}
+
+	[Test]
+	public async Task WhenAuth0ReturnsNonJsonError_ThrowsAuth0ApiExceptionInsteadOfJsonException()
+	{
+		mock.MockNonJsonError("/api/v2/users/auth0|abc123", 502, "<html>Bad Gateway</html>");
+
+		await Assert.That(async () => await client.UpdateEmail("auth0|abc123", "jane@example.com"))
+			.Throws<Auth0ApiException>();
+	}
 }

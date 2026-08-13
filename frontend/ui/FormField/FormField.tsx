@@ -8,7 +8,6 @@ import {
 import { Label } from "@/ui/Label/Label";
 import { cx } from "@/ui/util/cx";
 import styles from "./FormField.module.css";
-import { ShieldAlert } from "lucide-react";
 
 export interface FormFieldProps
 	extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {

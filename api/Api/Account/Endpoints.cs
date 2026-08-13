@@ -10,9 +10,11 @@ namespace Api.Account.Endpoint;
 /// <summary>Self-service endpoints for the current user to update their own Auth0 profile.</summary>
 public static class Account
 {
-	/// <summary>Users on Auth0's database connection have a `sub` claim prefixed like this;
+	/// <summary>
+	/// Users on Auth0's database connection have a `sub` claim prefixed like this;
 	/// social/enterprise connections (google-oauth2|..., etc.) don't have an Auth0-managed
-	/// password to change.</summary>
+	/// password to change.
+	/// </summary>
 	const string DatabaseConnectionSubjectPrefix = "auth0|";
 
 	/// <summary>Maps the account endpoints into a route group.</summary>
@@ -35,8 +37,10 @@ public static class Account
 		return TypedResults.Ok();
 	}
 
-	/// <summary>Updates the current user's email. Auth0 resets email_verified to false and sends
-	/// its own verification email as a side effect.</summary>
+	/// <summary>
+	/// Updates the current user's email. Sets verify_email so Auth0 resets email_verified to
+	/// false and sends a fresh verification email itself, as part of this same call.
+	/// </summary>
 	[EndpointName("UpdateAccountEmail")]
 	static async Task<Ok> UpdateEmail(
 		UpdateEmailRequest body,
@@ -58,8 +62,10 @@ public static class Account
 		return TypedResults.Ok();
 	}
 
-	/// <summary>Updates the current user's password. Only available for users on Auth0's
-	/// database connection.</summary>
+	/// <summary>
+	/// Updates the current user's password. Only available for users on Auth0's database
+	/// connection.
+	/// </summary>
 	[EndpointName("UpdateAccountPassword")]
 	static async Task<Results<Ok, ForbidHttpResult>> UpdatePassword(
 		UpdatePasswordRequest body,
