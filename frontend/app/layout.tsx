@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { PropsWithChildren } from "react";
-import QueryProvider from "@/component/QueryProvider";
+import type { PropsWithChildren } from "react";
 import AuthProvider from "@/component/auth/Provider";
-import Menu from "@/component/nav/Menu";
+import Nav from "@/component/nav/Nav";
+import QueryProvider from "@/component/QueryProvider";
+import styles from "./layout.module.css";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -26,8 +27,12 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
 		<html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
 			<body>
 				<AuthProvider>
-					<Menu />
-					<QueryProvider>{children}</QueryProvider>
+					<div className={styles.shell}>
+						<Nav />
+						<div className={styles.content}>
+							<QueryProvider>{children}</QueryProvider>
+						</div>
+					</div>
 				</AuthProvider>
 			</body>
 		</html>
