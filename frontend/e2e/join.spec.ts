@@ -20,9 +20,12 @@ test("/join with an unknown token shows an invalid-or-expired message", async ({
 
 	await page.goto("/join?token=00000000-0000-0000-0000-000000000000");
 
+	// Generous timeout: this can be the first real request to the API in the
+	// whole suite (run order isn't guaranteed), and a cold Marten connection
+	// pool / query warm-up can be slower than the default assertion timeout.
 	await expect(
 		page.getByText("This invite link is invalid or has expired."),
-	).toBeVisible();
+	).toBeVisible({ timeout: 15_000 });
 });
 
 test("unauthenticated user sees a sign-in prompt for a valid invite, then joins after signing in", async ({
@@ -45,7 +48,10 @@ test("unauthenticated user sees a sign-in prompt for a valid invite, then joins 
 	await page.getByRole("button", { name: "Invite member" }).click();
 	const inviteLink = await page.locator("input[readonly]").inputValue();
 
-	await page.getByRole("button", { name: "Log out" }).click();
+	// force: true - Next's dev-mode overlay badge sits on top of the sidebar
+	// footer and intercepts the click otherwise; a production build wouldn't
+	// have this overlay at all.
+	await page.getByRole("button", { name: "Log out" }).click({ force: true });
 	await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 
 	const token = new URL(inviteLink).searchParams.get("token");
