@@ -1,0 +1,59 @@
+.trigger {
+	cursor: default;
+}
+
+.tooltip {
+	position: fixed;
+	position-area: top;
+	margin-bottom: var(--space-2);
+
+	white-space: nowrap;
+	background: var(--fg-primary);
+	color: var(--bg-primary);
+	padding: var(--space-1) var(--space-2);
+	border-radius: var(--radius-sm);
+	font-size: var(--font-size-sm);
+	box-shadow: var(--shadow-sm);
+
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity var(--transition-fast),
+		visibility var(--transition-fast);
+}
+
+.arrow {
+	position: absolute;
+	left: 50%;
+	bottom: -4px;
+	width: 8px;
+	height: 8px;
+	transform: translateX(-50%) rotate(45deg);
+	background: var(--fg-primary);
+}
+
+.trigger:hover ~ .tooltip,
+.trigger:focus-visible ~ .tooltip {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* CSS anchor positioning isn't supported everywhere yet. Where it's missing, fall back
+   to plain absolute positioning against the nearest positioned ancestor the consumer
+   provides (AdornedInput's .wrapper is position:relative for this reason) - alignment is
+   approximate in this path since it can't reach across to the trigger's exact position. */
+@supports not (position-anchor: --a) {
+	.tooltip {
+		position: absolute;
+		bottom: 100%;
+		right: 0;
+		margin-bottom: var(--space-2);
+	}
+
+	.arrow {
+		left: auto;
+		right: var(--space-2);
+		transform: rotate(45deg);
+	}
+}

@@ -1,3 +1,7 @@
+export type { AdornedInputProps } from "./AdornedInput/AdornedInput";
+export { AdornedInput } from "./AdornedInput/AdornedInput";
+export type { AvatarProps, AvatarSize } from "./Avatar/Avatar";
+export { Avatar } from "./Avatar/Avatar";
 export type {
 	ButtonColor,
 	ButtonProps,
@@ -38,3 +42,5 @@ export {
 } from "./Table/tableFeatures";
 export type { TextareaProps } from "./Textarea/Textarea";
 export { Textarea } from "./Textarea/Textarea";
+export type { TooltipProps } from "./Tooltip/Tooltip";
+export { Tooltip } from "./Tooltip/Tooltip";
