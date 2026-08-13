@@ -7,6 +7,7 @@ import {
 	getApiV1OrganizationQueryKey,
 	postApiV1OrganizationMutation,
 } from "@/api/@tanstack/react-query.gen";
+import type { OrganizationMembership } from "@/api/types.gen";
 import { Button } from "@/ui/Button/Button";
 import { FormField } from "@/ui/FormField/FormField";
 import { Input } from "@/ui/Input/Input";
@@ -26,9 +27,17 @@ export default function OrganizationsPage() {
 	const { mutate, isPending, error } = useMutation({
 		...postApiV1OrganizationMutation(),
 		onSuccess: (org) => {
-			queryClient.invalidateQueries({
-				queryKey: getApiV1OrganizationQueryKey(),
-			});
+			// The creator is always added as Admin (see CreateOrganization), so the
+			// list can be updated directly instead of refetching: "my organizations"
+			// reads from an async-projected snapshot, which can briefly lag behind
+			// the write, making a just-created org disappear from a refetch.
+			queryClient.setQueryData<OrganizationMembership[]>(
+				getApiV1OrganizationQueryKey(),
+				(current) => [
+					...(current ?? []),
+					{ id: org.id, name: org.name, role: "Admin" },
+				],
+			);
 			setCurrentOrganizationId(org.id);
 			setName("");
 		},
