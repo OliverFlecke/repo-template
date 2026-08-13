@@ -34,15 +34,21 @@ export default function Nav() {
 
 	// Read the persisted preference after mount to avoid an SSR/client mismatch.
 	useEffect(() => {
-		setPinned(localStorage.getItem(PINNED_KEY) === "true");
+		try {
+			setPinned(localStorage.getItem(PINNED_KEY) === "true");
+		} catch {
+			// Storage may be unavailable (e.g. sandboxed iframes); fall back to unpinned.
+		}
 	}, []);
 
 	const togglePinned = () => {
-		setPinned((prev) => {
-			const next = !prev;
+		const next = !pinned;
+		try {
 			localStorage.setItem(PINNED_KEY, String(next));
-			return next;
-		});
+		} catch {
+			// Storage may be unavailable; the preference just won't persist.
+		}
+		setPinned(next);
 	};
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-run on navigation
@@ -181,11 +187,15 @@ function NavItem({ icon, label, href, onClick, active }: NavItemProps) {
 	);
 
 	return href ? (
-		<Link href={href} className={className} title={label}>
+		<Link
+			href={href}
+			className={className}
+			aria-current={active ? "page" : undefined}
+		>
 			{content}
 		</Link>
 	) : (
-		<button type="button" className={className} title={label} onClick={onClick}>
+		<button type="button" className={className} onClick={onClick}>
 			{content}
 		</button>
 	);

@@ -6,7 +6,7 @@
 	flex-direction: column;
 	flex-shrink: 0;
 	width: var(--width-slim);
-	height: 100vh;
+	height: 100dvh;
 	position: sticky;
 	top: 0;
 	overflow: hidden;
@@ -17,7 +17,8 @@
 }
 
 .nav:hover,
-.nav.pinned {
+.nav.pinned,
+.nav:focus-within {
 	width: var(--width-expanded);
 }
 
@@ -106,7 +107,8 @@
 }
 
 .nav:hover .label,
-.nav.pinned .label {
+.nav.pinned .label,
+.nav:focus-within .label {
 	max-width: 100%;
 	opacity: 1;
 }
@@ -147,7 +149,8 @@
 		box-shadow: var(--shadow-md);
 	}
 
-	.nav:hover {
+	.nav:hover,
+	.nav:focus-within {
 		width: 260px;
 	}
 
