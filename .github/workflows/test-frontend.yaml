@@ -22,6 +22,17 @@ jobs:
         with:
           install_args: dotnet node pnpm
 
+      # Login/create/invite/join e2e specs exercise the real API, so bring up
+      # the api container and its dependency chain (db, OpenFGA). `up -d`
+      # returns as soon as containers are started rather than waiting for
+      # readiness, so this overlaps with the steps below instead of blocking
+      # them - see "Wait for API to be ready".
+      - name: Build backend images
+        run: docker compose build api-migrate api openfga-setup
+
+      - name: Start backend services
+        run: docker compose -f docker-compose.yaml -f docker-compose.ci.yaml up -d api
+
       # Generates api/Api/openapi.json, which the frontend build consumes to
       # generate its API client. Doesn't need the database or any other
       # backing service, see the `GetDocument.Insider` branch in Program.cs.
@@ -41,8 +52,16 @@ jobs:
         working-directory: frontend
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Wait for API to be ready
+        run: timeout 60 bash -c 'until curl -sf http://localhost:8080/healthz > /dev/null; do sleep 2; done'
+
       - name: Run end-to-end tests
         working-directory: frontend
+        env:
+          # Local dev reaches the api through Caddy's HTTPS front door
+          # (see .env.development); CI talks to the container's own HTTP
+          # port directly (see docker-compose.ci.yaml).
+          NEXT_PUBLIC_API_HOST: http://localhost:8080
         run: pnpm test:e2e
 
       - name: Upload Playwright report
@@ -52,3 +71,7 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report/
           retention-days: 14
+
+      - name: Stop backend services
+        if: always()
+        run: docker compose -f docker-compose.yaml -f docker-compose.ci.yaml down -v
