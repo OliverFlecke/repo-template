@@ -61,6 +61,14 @@ test("unauthenticated user sees a sign-in prompt for a valid invite, then joins 
 		page.getByRole("heading", { name: `You've been invited to join ${name}` }),
 	).toBeVisible();
 
+	// Auth0 still has an active SSO session from loginWithAuth0 above (same
+	// account, same browser), so this completes silently rather than showing
+	// an interactive login page. What actually matters is the `state.returnTo`
+	// wiring: without it, the fixed redirect_uri would drop the user back at
+	// "/" and lose the token, instead of back on this same invite page.
 	await page.getByRole("button", { name: "Sign in to join" }).click();
-	await expect(page).toHaveURL(/auth0\.com/);
+	await expect(page).toHaveURL(`/join?token=${token}`, { timeout: 15_000 });
+	await expect(
+		page.getByRole("heading", { name: `You've been invited to join ${name}` }),
+	).toBeVisible();
 });
