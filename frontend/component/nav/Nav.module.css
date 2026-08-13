@@ -14,12 +14,10 @@
 	border-right: 1px solid var(--color-border);
 	transition: width var(--transition-fast);
 	z-index: 20;
-}
 
-.nav:hover,
-.nav.pinned,
-.nav:focus-within {
-	width: var(--width-expanded);
+	&.pinned {
+		width: var(--width-expanded);
+	}
 }
 
 .header {
@@ -27,22 +25,30 @@
 	align-items: center;
 	justify-content: space-between;
 	height: 56px;
-	padding: 0 var(--space-2) 0 var(--space-3);
+	padding-left: var(--space-4);
+	gap: var(--space-2);
 	flex-shrink: 0;
+}
+
+.label {
+	flex: 1;
+	min-width: 0;
+	max-width: 0;
+	opacity: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	transition: opacity var(--transition-fast);
+}
+
+.nav.pinned .label {
+	max-width: 100%;
+	opacity: 1;
 }
 
 .brand {
 	font-weight: 600;
 	white-space: nowrap;
 	overflow: hidden;
-}
-
-.pinButton svg {
-	transition: transform var(--transition-fast);
-}
-
-.pinButtonActive svg {
-	transform: rotate(180deg);
 }
 
 .links {
@@ -69,16 +75,15 @@
 	width: 100%;
 	text-align: left;
 	font: inherit;
-}
 
-.link:hover {
-	background: var(--color-border);
-	color: var(--text-primary);
-}
-
-.link:focus-visible {
-	outline: 2px solid var(--color-focus-ring);
-	outline-offset: -2px;
+	&:hover {
+		background: var(--color-border);
+		color: var(--text-primary);
+	}
+	&:focus-visible {
+		outline: 2px solid var(--color-focus-ring);
+		outline-offset: -2px;
+	}
 }
 
 .active {
@@ -96,23 +101,6 @@
 	height: 24px;
 }
 
-.label {
-	flex: 1;
-	min-width: 0;
-	max-width: 0;
-	opacity: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	transition: opacity var(--transition-fast);
-}
-
-.nav:hover .label,
-.nav.pinned .label,
-.nav:focus-within .label {
-	max-width: 100%;
-	opacity: 1;
-}
-
 .footer {
 	padding: var(--space-2);
 	border-top: 1px solid var(--color-border);
@@ -122,7 +110,7 @@
 	flex-shrink: 0;
 }
 
-.hamburger {
+button.hamburger {
 	display: none;
 	position: fixed;
 	top: var(--space-3);
@@ -147,19 +135,15 @@
 		width: 260px;
 		transform: translateX(-100%);
 		box-shadow: var(--shadow-md);
-	}
 
-	.nav:hover,
-	.nav:focus-within {
-		width: 260px;
-	}
+		&:hover,
+		&:focus-within {
+			width: 260px;
+		}
 
-	.nav.mobileOpen {
-		transform: translateX(0);
-	}
-
-	.pinButton {
-		display: none;
+		&.mobileOpen {
+			transform: translateX(0);
+		}
 	}
 
 	.header {

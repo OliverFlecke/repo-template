@@ -1,7 +1,7 @@
-import { ChevronRight } from "lucide-react";
+import { ListCollapse } from "lucide-react";
 import { IconButton } from "@/ui/IconButton/IconButton";
 import { cx } from "@/ui/util/cx";
-import styles from "./Nav.module.css";
+import styles from "./PinToggle.module.css";
 
 interface PinToggleProps {
 	pinned: boolean;
@@ -13,13 +13,13 @@ export function PinToggle({ pinned, onToggle }: PinToggleProps) {
 	return (
 		<IconButton
 			size="sm"
-			className={cx(styles.pinButton, pinned && styles.pinButtonActive)}
+			className={cx(styles.pinButton, pinned && styles.active)}
 			aria-pressed={pinned}
 			aria-label={pinned ? "Collapse sidebar" : "Keep sidebar expanded"}
 			title={pinned ? "Collapse sidebar" : "Keep sidebar expanded"}
 			onClick={onToggle}
 		>
-			<ChevronRight size={16} aria-hidden />
+			<ListCollapse size={20} aria-hidden />
 		</IconButton>
 	);
 }

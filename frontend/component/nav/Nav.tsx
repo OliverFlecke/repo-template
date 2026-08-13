@@ -15,10 +15,11 @@ import { useMobileNav } from "./useMobileNav";
 import { usePinned } from "./usePinned";
 
 export default function Nav() {
-	const pathname = usePathname();
 	const { user, signinRedirect } = useAuth();
 	const logout = useLogout();
 	const isAdmin = getRoles(user).includes("admin");
+
+	const pathname = usePathname();
 
 	const [pinned, togglePinned] = usePinned();
 	const [mobileOpen, toggleMobileOpen] = useMobileNav(pathname);
@@ -37,12 +38,13 @@ export default function Nav() {
 				)}
 			>
 				<div className={styles.header}>
+					<PinToggle pinned={pinned} onToggle={togglePinned} />
+
 					<span className={styles.label}>
 						<span className={styles.brand}>
 							{process.env.NEXT_PUBLIC_APP_NAME}
 						</span>
 					</span>
-					<PinToggle pinned={pinned} onToggle={togglePinned} />
 				</div>
 
 				<ul className={styles.links}>

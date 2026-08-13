@@ -1,0 +1,15 @@
+.pinButton {
+	svg {
+		transition: transform var(--transition-fast);
+	}
+
+	&.active svg {
+		transform: rotate(180deg);
+	}
+}
+
+@media (max-width: 768px) {
+	.pinButton {
+		display: none;
+	}
+}
