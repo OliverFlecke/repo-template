@@ -1,4 +1,4 @@
-import { User } from "oidc-client-ts";
+import type { User } from "oidc-client-ts";
 import { getUser } from "./config";
 
 /**

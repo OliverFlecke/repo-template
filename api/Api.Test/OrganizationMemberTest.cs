@@ -235,6 +235,92 @@ public sealed class OrganizationMemberTest
 
 		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
 	}
+
+	[Test]
+	public async Task GetOrganization_WhenCallerCanView_ReturnsOrganizationWithMembers()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await client.CreateMyOrganization($"Details-{Guid.NewGuid()}");
+		App.OpenFga.MockCheck(subject, "can_view", "organization", org.Id.ToString(), allowed: true);
+
+		var response = await client.GetAsync($"api/v1/organization/{org.Id}");
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.OK);
+		var details = (await response.Content.ReadFromJsonAsync<OrganizationDetails>())!;
+		await Assert.That(details.Id).IsEqualTo(org.Id);
+		await Assert.That(details.Name).IsEqualTo(org.Name);
+		await Assert.That(details.Members.Any(m => m.UserId == subject && m.Role == OrganizationRole.Admin)).IsTrue();
+	}
+
+	[Test]
+	public async Task GetOrganization_WhenCallerCannotView_RespondsForbidden()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await client.CreateMyOrganization($"DetailsForbidden-{Guid.NewGuid()}");
+		var outsider = App.CreateClient().WithAuthenticatedUser(Guid.NewGuid().ToString());
+
+		var response = await outsider.GetAsync($"api/v1/organization/{org.Id}");
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.Forbidden);
+	}
+
+	[Test]
+	public async Task GetOrganization_WithUnknownId_RespondsNotFound()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var unknownId = Guid.NewGuid();
+		App.OpenFga.MockCheck(subject, "can_view", "organization", unknownId.ToString(), allowed: true);
+
+		var response = await client.GetAsync($"api/v1/organization/{unknownId}");
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
+	}
+
+	[Test]
+	public async Task CreateInvite_WhenCallerCanAdd_CreatesInviteWithToken()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await client.CreateMyOrganization($"Invite-{Guid.NewGuid()}");
+		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: true);
+
+		var response = await client.PostAsJsonAsync(
+			$"api/v1/organization/{org.Id}/invite",
+			new CreateInviteRequest { Email = "new-member@example.com" });
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.Created);
+		var invite = (await response.Content.ReadFromJsonAsync<Org.Response.OrganizationInvite>())!;
+		await Assert.That(invite.OrganizationId).IsEqualTo(org.Id);
+		await Assert.That(invite.Email).IsEqualTo("new-member@example.com");
+		await Assert.That(invite.Id).IsNotEqualTo(Guid.Empty);
+	}
+
+	[Test]
+	public async Task CreateInvite_WhenCallerCannotAdd_RespondsForbidden()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await client.CreateMyOrganization($"InviteForbidden-{Guid.NewGuid()}");
+		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: false);
+
+		var response = await client.PostAsJsonAsync(
+			$"api/v1/organization/{org.Id}/invite",
+			new CreateInviteRequest { Email = "new-member@example.com" });
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.Forbidden);
+	}
+
+	[Test]
+	public async Task CreateInvite_WithUnknownOrganizationId_RespondsNotFound()
+	{
+		var client = App.CreateClient().WithAuthenticatedUser(subject);
+		var unknownId = Guid.NewGuid();
+		App.OpenFga.MockCheck(subject, "can_add", "organization", unknownId.ToString(), allowed: true);
+
+		var response = await client.PostAsJsonAsync(
+			$"api/v1/organization/{unknownId}/invite",
+			new CreateInviteRequest { Email = "new-member@example.com" });
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.NotFound);
+	}
 }
 
 public static class ClientOrganizationMemberExtensions

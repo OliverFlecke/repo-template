@@ -9,3 +9,7 @@ public sealed record OrganizationDeleted(Guid Id);
 public sealed record OrganizationMemberAdded(Guid Id, string UserId, OrganizationRole Role);
 
 public sealed record OrganizationMemberRemoved(Guid Id, string UserId, OrganizationRole Role);
+
+public sealed record OrganizationInviteCreated(Guid Id, Guid OrganizationId, string Email);
+
+public sealed record OrganizationInviteAccepted(Guid Id, string UserId);

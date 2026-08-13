@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Shield } from "lucide-react";
+import { Building2, LayoutDashboard, Shield } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "react-oidc-context";
 import { useLogout } from "@/component/auth";
@@ -52,6 +52,14 @@ export default function Nav() {
 							label="Dashboard"
 							icon={<LayoutDashboard size={20} aria-hidden />}
 							active={pathname === "/dashboard"}
+						/>
+					</li>
+					<li>
+						<NavItem
+							href="/organization"
+							label="Organizations"
+							icon={<Building2 size={20} aria-hidden />}
+							active={pathname.startsWith("/organization")}
 						/>
 					</li>
 					{isAdmin && (

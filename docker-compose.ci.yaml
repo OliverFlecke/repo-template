@@ -1,0 +1,10 @@
+---
+# CI-only override: exposes the api container's port directly to the runner
+# so e2e tests can reach it. Local dev goes through Caddy for HTTPS (see
+# Caddyfile), but CI has no mkcert certificate, and browsers treat
+# http://localhost as a secure context, so plain HTTP is fine here.
+name: repo-template
+services:
+  api:
+    ports:
+      - "127.0.0.1:8080:8080"
