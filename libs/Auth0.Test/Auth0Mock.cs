@@ -47,6 +47,13 @@ public sealed class Auth0Mock : IAsyncInitializer, IAsyncDisposable
 			.RespondWith(Response.Create().WithStatusCode(200).WithBodyAsJson(new { user_id = userId }));
 	}
 
+	public void MockGetUser(string userId, string name, string? email = null)
+	{
+		server
+			.Given(Request.Create().WithPath($"/api/v2/users/{userId}").UsingGet())
+			.RespondWith(Response.Create().WithStatusCode(200).WithBodyAsJson(new { user_id = userId, name, email }));
+	}
+
 	public void MockVerificationEmail()
 	{
 		server

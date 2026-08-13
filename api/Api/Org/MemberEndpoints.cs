@@ -3,6 +3,8 @@ using Api.OpenFGA;
 using Api.Org.Model.Events;
 using Api.Org.Response;
 
+using Auth0;
+
 using Marten;
 
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -53,7 +55,9 @@ public static class OrganizationMembers
 
 	static async Task<Results<Ok<OrganizationDetails>, NotFound>> GetOrganization(
 		Guid id,
-		[FromServices] IDocumentSession session)
+		[FromServices] IDocumentSession session,
+		[FromServices] Auth0ApiClient auth0,
+		CancellationToken cancellationToken)
 	{
 		// FetchLatest reads directly off the event stream rather than the async-projected
 		// snapshot doc, so a just-created organization is visible immediately.
@@ -63,11 +67,18 @@ public static class OrganizationMembers
 			return TypedResults.NotFound();
 		}
 
+		var profiles = await auth0.GetUsers(org.Members.Keys, cancellationToken);
+
 		return TypedResults.Ok(new OrganizationDetails
 		{
 			Id = org.Id,
 			Name = org.Name,
-			Members = [.. org.Members.Select(m => new OrganizationMemberInfo { UserId = m.Key, Role = m.Value })],
+			Members = [.. org.Members.Select(m => new OrganizationMemberInfo
+			{
+				UserId = m.Key,
+				Name = profiles.GetValueOrDefault(m.Key)?.Name,
+				Role = m.Value,
+			})],
 		});
 	}
 

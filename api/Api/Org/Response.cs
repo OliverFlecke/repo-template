@@ -31,6 +31,10 @@ public sealed record OrganizationMemberInfo
 {
 	public required string UserId { get; init; }
 
+	/// <summary>The member's Auth0 display name, or null if Auth0 has no such user (e.g. deleted
+	/// since joining) or the lookup failed.</summary>
+	public string? Name { get; init; }
+
 	public required OrganizationRole Role { get; init; }
 }
 

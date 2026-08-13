@@ -9,7 +9,7 @@ public sealed record Auth0Config
 	public required Uri Host { get; set; }
 
 	/// <summary>Client id of the Machine-to-Machine application authorized for the Management
-	/// API, granted the `update:users` and `create:user_tickets` scopes.</summary>
+	/// API, granted the `read:users`, `update:users`, and `create:user_tickets` scopes.</summary>
 	public required string ClientId { get; set; }
 
 	/// <summary>Client secret of the Machine-to-Machine application.</summary>

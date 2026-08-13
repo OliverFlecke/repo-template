@@ -1,10 +1,13 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { useAuth } from "react-oidc-context";
 import {
+	deleteApiV1OrganizationByIdMemberByUserIdMutation,
 	getApiV1OrganizationByIdOptions,
+	getApiV1OrganizationByIdQueryKey,
 	postApiV1OrganizationByIdInviteMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { Button } from "@/ui/Button/Button";
@@ -24,6 +27,8 @@ function OrganizationDetailContent() {
 	const id = useSearchParams().get("id") ?? "";
 	const [email, setEmail] = useState("");
 	const [inviteLink, setInviteLink] = useState<string | null>(null);
+	const { user } = useAuth();
+	const queryClient = useQueryClient();
 
 	const {
 		data: org,
@@ -42,6 +47,19 @@ function OrganizationDetailContent() {
 		},
 	});
 
+	const { mutate: removeMember } = useMutation({
+		...deleteApiV1OrganizationByIdMemberByUserIdMutation(),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: getApiV1OrganizationByIdQueryKey({ path: { id } }),
+			});
+		},
+	});
+
+	const isAdmin = org?.members.some(
+		(member) => member.userId === user?.profile.sub && member.role === "Admin",
+	);
+
 	return (
 		<main className={styles.main}>
 			{isError && (
@@ -58,8 +76,23 @@ function OrganizationDetailContent() {
 					<ul className={styles.list}>
 						{org.members.map((member) => (
 							<li key={member.userId} className={styles.item}>
-								<span className={styles.name}>{member.userId}</span>
+								<span className={styles.name}>
+									{member.name ?? member.userId}
+								</span>
 								<span className={styles.role}>{member.role}</span>
+								{isAdmin && member.role !== "Admin" && (
+									<Button
+										type="button"
+										variant="text"
+										color="danger"
+										size="sm"
+										onClick={() =>
+											removeMember({ path: { id, userId: member.userId } })
+										}
+									>
+										Remove
+									</Button>
+								)}
 							</li>
 						))}
 					</ul>

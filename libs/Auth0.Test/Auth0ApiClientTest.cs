@@ -73,6 +73,39 @@ public sealed class Auth0ApiClientTest
 	}
 
 	[Test]
+	public async Task GetUser_ReturnsProfile()
+	{
+		mock.MockGetUser("auth0|abc123", "Jane Doe", "jane@example.com");
+
+		var profile = await client.GetUser("auth0|abc123");
+
+		await Assert.That(profile!.Name).IsEqualTo("Jane Doe");
+		await Assert.That(profile.Email).IsEqualTo("jane@example.com");
+	}
+
+	[Test]
+	public async Task GetUser_WhenAuth0ReturnsNotFound_ReturnsNull()
+	{
+		mock.MockError("/api/v2/users/auth0|abc123", 404, "not found");
+
+		var profile = await client.GetUser("auth0|abc123");
+
+		await Assert.That(profile).IsNull();
+	}
+
+	[Test]
+	public async Task GetUsers_OmitsUsersAuth0DoesNotKnowAbout()
+	{
+		mock.MockGetUser("auth0|abc123", "Jane Doe");
+		mock.MockError("/api/v2/users/auth0|missing", 404, "not found");
+
+		var profiles = await client.GetUsers(["auth0|abc123", "auth0|missing"]);
+
+		await Assert.That(profiles.ContainsKey("auth0|abc123")).IsTrue();
+		await Assert.That(profiles.ContainsKey("auth0|missing")).IsFalse();
+	}
+
+	[Test]
 	public async Task SendVerificationEmail_PostsJobWithUserId()
 	{
 		mock.MockVerificationEmail();
