@@ -1,8 +1,0 @@
-.container {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: var(--space-2) var(--space-4);
-
-	background: var(--bg-secondary);
-}
