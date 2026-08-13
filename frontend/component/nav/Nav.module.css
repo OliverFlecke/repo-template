@@ -80,14 +80,6 @@
 	outline-offset: -2px;
 }
 
-.static {
-	cursor: default;
-}
-
-.static:hover {
-	background: transparent;
-}
-
 .active {
 	background: var(--bg-primary);
 	color: var(--text-primary);
@@ -99,20 +91,23 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	width: 20px;
-	height: 20px;
+	width: 24px;
+	height: 24px;
 }
 
 .label {
-	width: 0;
+	flex: 1;
+	min-width: 0;
+	max-width: 0;
 	opacity: 0;
 	overflow: hidden;
+	text-overflow: ellipsis;
 	transition: opacity var(--transition-fast);
 }
 
 .nav:hover .label,
 .nav.pinned .label {
-	width: auto;
+	max-width: 100%;
 	opacity: 1;
 }
 
@@ -169,7 +164,7 @@
 	}
 
 	.label {
-		width: auto;
+		max-width: 100%;
 		opacity: 1;
 	}
 
