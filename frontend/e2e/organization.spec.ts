@@ -15,7 +15,9 @@ test("unauthenticated user is redirected to login when visiting /organization", 
 test("unauthenticated user is redirected to login when visiting an organization's detail page", async ({
 	page,
 }) => {
-	await page.goto("/organization/detail?id=00000000-0000-0000-0000-000000000000");
+	await page.goto(
+		"/organization/detail?id=00000000-0000-0000-0000-000000000000",
+	);
 
 	await expect(page).toHaveURL(/auth0\.com/);
 });
@@ -57,7 +59,9 @@ test("user can view an organization's members and invite a new one", async ({
 	await page.getByRole("link", { name }).click();
 
 	await expect(page.getByRole("heading", { name })).toBeVisible();
-	await expect(page.getByRole("listitem").filter({ hasText: "Admin" })).toBeVisible();
+	await expect(
+		page.getByRole("listitem").filter({ hasText: "Admin" }),
+	).toBeVisible();
 
 	await page.getByLabel("Email").fill("invitee@example.com");
 	await page.getByRole("button", { name: "Invite member" }).click();

@@ -42,3 +42,14 @@ public sealed record OrganizationInvite
 
 	public required string Email { get; init; }
 }
+
+public sealed record InviteDetails
+{
+	public required Guid OrganizationId { get; init; }
+
+	public required string OrganizationName { get; init; }
+
+	public required string Email { get; init; }
+
+	public required bool Accepted { get; init; }
+}

@@ -88,4 +88,22 @@ public sealed class OrganizationInviteModelTest
 		await Assert.That(invite.OrganizationId).IsEqualTo(orgId);
 		await Assert.That(invite.Email).IsEqualTo("someone@example.com");
 	}
+
+	[Test]
+	public async Task Create_HasNoAcceptedByUserId()
+	{
+		var invite = OrganizationInvite.Create(new OrganizationInviteCreated(Guid.NewGuid(), Guid.NewGuid(), "someone@example.com"));
+
+		await Assert.That(invite.AcceptedByUserId).IsNull();
+	}
+
+	[Test]
+	public async Task Apply_InviteAccepted_SetsAcceptedByUserId()
+	{
+		var invite = OrganizationInvite.Create(new OrganizationInviteCreated(Guid.NewGuid(), Guid.NewGuid(), "someone@example.com"));
+
+		var updated = OrganizationInvite.Apply(new OrganizationInviteAccepted(invite.Id, "user-1"), invite);
+
+		await Assert.That(updated.AcceptedByUserId).IsEqualTo("user-1");
+	}
 }

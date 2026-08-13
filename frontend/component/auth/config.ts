@@ -1,5 +1,5 @@
-import { AuthProviderProps } from "react-oidc-context";
 import { User, WebStorageStateStore } from "oidc-client-ts";
+import type { AuthProviderProps } from "react-oidc-context";
 
 const oidcConfig = {
 	authority: process.env.NEXT_PUBLIC_AUTHORITY!,
@@ -20,17 +20,6 @@ const oidcConfig = {
 			? new WebStorageStateStore({ store: window.localStorage })
 			: undefined,
 
-	onSigninCallback: () => {
-		const query = new URLSearchParams(window.location.search);
-		query.delete("state");
-		query.delete("code");
-
-		window.history.replaceState(
-			{},
-			document.title,
-			`${window.location.pathname}?${query.toString()}`,
-		);
-	},
 	onRemoveUser: () => {
 		window.location.href = "/";
 	},
