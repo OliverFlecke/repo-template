@@ -114,6 +114,27 @@ public sealed class OrganizationInviteTest
 	}
 
 	[Test]
+	public async Task AcceptInvite_WhenCallerIsAlreadyAMember_RespondsConflictAndDoesNotChangeRole()
+	{
+		var owner = App.CreateClient().WithAuthenticatedUser(subject);
+		var org = await owner.CreateMyOrganization($"AcceptOwnInvite-{Guid.NewGuid()}");
+		App.OpenFga.MockCheck(subject, "can_add", "organization", org.Id.ToString(), allowed: true);
+		var invite = await owner.CreateInvite(org.Id, "someone@example.com");
+
+		var response = await owner.PostAsync($"api/v1/invite/{invite.Id}/accept", null);
+
+		await Assert.That(response).HasStatusCode(HttpStatusCode.Conflict);
+
+		using var scope = App.Services.CreateScope();
+		var session = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
+		var projectedOrg = await Assert.That(await session.Events.FetchLatest<Org.Model.Organization>(org.Id)).IsNotNull();
+		await Assert.That(projectedOrg.Members[subject]).IsEqualTo(Org.Model.OrganizationRole.Admin);
+
+		var projectedInvite = await Assert.That(await session.Events.FetchLatest<Org.Model.OrganizationInvite>(invite.Id)).IsNotNull();
+		await Assert.That(projectedInvite.AcceptedByUserId).IsNull();
+	}
+
+	[Test]
 	public async Task GetInvite_AfterAccepted_ReturnsAcceptedTrue()
 	{
 		var owner = App.CreateClient().WithAuthenticatedUser(subject);

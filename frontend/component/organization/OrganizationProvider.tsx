@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createContext,
 	type PropsWithChildren,
@@ -10,7 +10,10 @@ import {
 	useState,
 } from "react";
 import { useAuth } from "react-oidc-context";
-import { getApiV1OrganizationOptions } from "@/api/@tanstack/react-query.gen";
+import {
+	getApiV1OrganizationOptions,
+	getApiV1OrganizationQueryKey,
+} from "@/api/@tanstack/react-query.gen";
 import type { OrganizationMembership } from "@/api/types.gen";
 
 const STORAGE_KEY = "currentOrganizationId";
@@ -34,6 +37,7 @@ export default function OrganizationProvider({
 	children,
 }: Readonly<PropsWithChildren>) {
 	const { isAuthenticated } = useAuth();
+	const queryClient = useQueryClient();
 	const [currentOrganizationId, setCurrentOrganizationId] = useState<
 		string | undefined
 	>(undefined);
@@ -45,12 +49,18 @@ export default function OrganizationProvider({
 	const organizations = useMemo(() => data ?? [], [data]);
 
 	useEffect(() => {
+		if (!isAuthenticated) {
+			// Otherwise a different user signing in on the same browser would
+			// briefly see the previous user's organizations: a disabled query
+			// keeps its last data rather than clearing it.
+			queryClient.removeQueries({ queryKey: getApiV1OrganizationQueryKey() });
+		}
 		setCurrentOrganizationId(
 			isAuthenticated
 				? (localStorage.getItem(STORAGE_KEY) ?? undefined)
 				: undefined,
 		);
-	}, [isAuthenticated]);
+	}, [isAuthenticated, queryClient]);
 
 	useEffect(() => {
 		if (

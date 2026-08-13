@@ -49,7 +49,12 @@ public static class Invites
 
 	/// <summary>Accepts an invite, adding the caller as a member of the invite's organization.
 	/// Holding a valid, unused token is itself the authorization to join - no separate OpenFGA
-	/// relation is required.</summary>
+	/// relation is required.
+	///
+	/// ponytail: invites never expire and can't be revoked, and acceptance isn't restricted to
+	/// the invited email - anyone holding the token can join. Acceptable while invites are only
+	/// ever shared as a manually-copied link; revisit (expiry, email-matching) once they're
+	/// actually emailed out.</summary>
 	static async Task<Results<Ok, NotFound, Conflict>> AcceptInvite(
 		Guid token,
 		[FromServices] IDocumentSession session,
@@ -73,6 +78,14 @@ public static class Invites
 		if (orgStream.Aggregate is null)
 		{
 			return TypedResults.NotFound();
+		}
+
+		// Without this, a caller who's already a member (e.g. the admin who created the invite,
+		// following their own link) would have OrganizationMemberAdded overwrite their existing
+		// role down to Member - Organization.Apply replaces the dictionary entry unconditionally.
+		if (orgStream.Aggregate.Members.ContainsKey(currentUser.Id))
+		{
+			return TypedResults.Conflict();
 		}
 
 		var memberAdded = new OrganizationMemberAdded(orgStream.Aggregate.Id, currentUser.Id, Model.OrganizationRole.Member);

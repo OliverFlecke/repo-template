@@ -90,7 +90,7 @@ public static class OrganizationMembers
 		await outbox.PublishAsync(memberAdded);
 		await session.SaveChangesAsync();
 
-		return TypedResults.Created($"/organization/{org.Id}", org);
+		return TypedResults.Created($"/api/v1/organization/{org.Id}", org);
 	}
 
 	static async Task<Results<Ok, NotFound>> AddMember(
@@ -206,7 +206,7 @@ public static class OrganizationMembers
 		await session.SaveChangesAsync();
 
 		return TypedResults.Created(
-			$"/organization/{id}/invite/{invite.Id}",
+			$"/api/v1/invite/{invite.Id}",
 			new OrganizationInvite { Id = invite.Id, OrganizationId = invite.OrganizationId, Email = invite.Email });
 	}
 }

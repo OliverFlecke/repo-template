@@ -15,7 +15,7 @@ import styles from "./JoinPage.module.css";
 
 export default function JoinPage() {
 	return (
-		<Suspense>
+		<Suspense fallback={<p>Loading...</p>}>
 			<JoinContent />
 		</Suspense>
 	);

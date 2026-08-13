@@ -14,7 +14,7 @@ import styles from "./OrganizationDetailPage.module.css";
 
 export default function OrganizationDetailPage() {
 	return (
-		<Suspense>
+		<Suspense fallback={<p>Loading...</p>}>
 			<OrganizationDetailContent />
 		</Suspense>
 	);
