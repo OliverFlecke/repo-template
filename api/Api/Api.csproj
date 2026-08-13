@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 	<PropertyGroup>
 		<!-- <PublishAot>true</PublishAot> -->
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

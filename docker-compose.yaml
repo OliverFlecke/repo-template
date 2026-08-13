@@ -61,7 +61,7 @@ services:
       - Database__Password=postgres
       - Database__Database=postgres
       - OpenFga__Host=http://openfga:8080
-      - Auth0__Host=https://oliverflecke.eu.auth0.com/
+      - Auth0__Host=${AUTH0_HOST}
       - Auth0__ClientId=${AUTH0_CLIENT_ID}
       - Auth0__ClientSecret=${AUTH0_CLIENT_SECRET}
       - Cors__AllowedOrigins__0=https://localhost:3000
