@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useState } from "react";
 import {
 	getApiV1OrganizationQueryKey,
@@ -72,7 +73,12 @@ export default function OrganizationsPage() {
 				<ul className={styles.list}>
 					{organizations.map((org) => (
 						<li key={org.id} className={styles.item}>
-							<span className={styles.name}>{org.name}</span>
+							<Link
+								href={`/organization/detail?id=${org.id}`}
+								className={styles.name}
+							>
+								{org.name}
+							</Link>
 							<span className={styles.role}>{org.role}</span>
 							{org.id === currentOrganizationId ? (
 								<span className={styles.current}>Current</span>

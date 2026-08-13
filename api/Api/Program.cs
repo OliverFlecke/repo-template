@@ -111,6 +111,7 @@ else
 			opts.UseNodaTime();
 
 			opts.Projections.Snapshot<Api.Org.Model.Organization>(SnapshotLifecycle.Async);
+			opts.Projections.Snapshot<Api.Org.Model.OrganizationInvite>(SnapshotLifecycle.Async);
 		})
 		.UseNpgsqlDataSource()
 		.AddAsyncDaemon(DaemonMode.HotCold)
@@ -205,6 +206,10 @@ static Task RunJasperFxCommandsAotSafe(WebApplication app, string[] args) => app
 [JsonSerializable(typeof(PagedResponse<Organization>))]
 [JsonSerializable(typeof(OrganizationMembership))]
 [JsonSerializable(typeof(IReadOnlyList<OrganizationMembership>))]
+[JsonSerializable(typeof(OrganizationDetails))]
+[JsonSerializable(typeof(OrganizationMemberInfo))]
+[JsonSerializable(typeof(IReadOnlyList<OrganizationMemberInfo>))]
+[JsonSerializable(typeof(OrganizationInvite))]
 [JsonSerializable(typeof(Api.Org.Model.OrganizationRole))]
 [JsonSerializable(typeof(CreateOrganizationRequest))]
 [JsonSerializable(typeof(UpdateOrganizationRequest))]
@@ -212,6 +217,7 @@ static Task RunJasperFxCommandsAotSafe(WebApplication app, string[] args) => app
 [JsonSerializable(typeof(UpdateNameRequest))]
 [JsonSerializable(typeof(UpdateEmailRequest))]
 [JsonSerializable(typeof(UpdatePasswordRequest))]
+[JsonSerializable(typeof(CreateInviteRequest))]
 [JsonSerializable(typeof(int?))]
 [JsonSerializable(typeof(bool?))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext

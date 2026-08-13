@@ -17,3 +17,28 @@ public sealed record OrganizationMembership
 
 	public required OrganizationRole Role { get; init; }
 }
+
+public sealed record OrganizationDetails
+{
+	public required Guid Id { get; init; }
+
+	public required string Name { get; init; }
+
+	public required IReadOnlyList<OrganizationMemberInfo> Members { get; init; }
+}
+
+public sealed record OrganizationMemberInfo
+{
+	public required string UserId { get; init; }
+
+	public required OrganizationRole Role { get; init; }
+}
+
+public sealed record OrganizationInvite
+{
+	public required Guid Id { get; init; }
+
+	public required Guid OrganizationId { get; init; }
+
+	public required string Email { get; init; }
+}

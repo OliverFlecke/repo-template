@@ -73,3 +73,19 @@ public sealed class OrganizationModelTest
 		await Assert.That(updated.Members).ContainsKey("user-1");
 	}
 }
+
+public sealed class OrganizationInviteModelTest
+{
+	[Test]
+	public async Task Create_SetsIdOrganizationIdAndEmail()
+	{
+		var orgId = Guid.NewGuid();
+		var inviteId = Guid.NewGuid();
+
+		var invite = OrganizationInvite.Create(new OrganizationInviteCreated(inviteId, orgId, "someone@example.com"));
+
+		await Assert.That(invite.Id).IsEqualTo(inviteId);
+		await Assert.That(invite.OrganizationId).IsEqualTo(orgId);
+		await Assert.That(invite.Email).IsEqualTo("someone@example.com");
+	}
+}
