@@ -48,15 +48,15 @@ test("unauthenticated user sees a sign-in prompt for a valid invite, then joins 
 	await page.getByRole("button", { name: "Invite member" }).click();
 	const inviteLink = await page.locator("input[readonly]").inputValue();
 
-	// dispatchEvent bypasses hit-testing: Next's dev-mode overlay badge sits on
-	// top of the sidebar footer, so a real (or force:true, which still hit-tests)
-	// click lands on the overlay instead. Not an issue in a production build,
-	// which doesn't render this overlay at all.
-	await page.getByRole("button", { name: "Log out" }).dispatchEvent("click");
-	await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
-
+	// Clear the local session directly instead of clicking "Log out": that
+	// goes through a real Auth0 redirect round-trip, which can race with
+	// automaticSilentRenew and land back with a fresh, still-authenticated
+	// session instead of a logged-out one. All this test needs is to view the
+	// invite link as an unauthenticated visitor, which this achieves directly.
 	const token = new URL(inviteLink).searchParams.get("token");
+	await page.evaluate(() => localStorage.clear());
 	await page.goto(`/join?token=${token}`);
+	await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 	await expect(
 		page.getByRole("heading", { name: `You've been invited to join ${name}` }),
 	).toBeVisible();
