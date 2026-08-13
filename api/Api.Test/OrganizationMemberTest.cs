@@ -242,6 +242,7 @@ public sealed class OrganizationMemberTest
 		var client = App.CreateClient().WithAuthenticatedUser(subject);
 		var org = await client.CreateMyOrganization($"Details-{Guid.NewGuid()}");
 		App.OpenFga.MockCheck(subject, "can_view", "organization", org.Id.ToString(), allowed: true);
+		App.Auth0.MockGetUser(subject, "Jane Doe");
 
 		var response = await client.GetAsync($"api/v1/organization/{org.Id}");
 
@@ -249,7 +250,7 @@ public sealed class OrganizationMemberTest
 		var details = (await response.Content.ReadFromJsonAsync<OrganizationDetails>())!;
 		await Assert.That(details.Id).IsEqualTo(org.Id);
 		await Assert.That(details.Name).IsEqualTo(org.Name);
-		await Assert.That(details.Members.Any(m => m.UserId == subject && m.Role == OrganizationRole.Admin)).IsTrue();
+		await Assert.That(details.Members.Any(m => m.UserId == subject && m.Role == OrganizationRole.Admin && m.Name == "Jane Doe")).IsTrue();
 	}
 
 	[Test]

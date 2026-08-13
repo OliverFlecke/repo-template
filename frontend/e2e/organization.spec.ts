@@ -1,9 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { loginWithAuth0 } from "./auth";
 
-const EMAIL = process.env.E2E_LOGIN_EMAIL;
-const PASSWORD = process.env.E2E_LOGIN_PASSWORD;
-
 test("unauthenticated user is redirected to login when visiting /organization", async ({
 	page,
 }) => {
@@ -25,12 +22,7 @@ test("unauthenticated user is redirected to login when visiting an organization'
 test("user can create an organization and it becomes the current one", async ({
 	page,
 }) => {
-	test.skip(
-		!EMAIL || !PASSWORD,
-		"E2E_LOGIN_EMAIL and E2E_LOGIN_PASSWORD must be set to run this test, see .env.e2e.example",
-	);
-
-	await loginWithAuth0(page, EMAIL as string, PASSWORD as string);
+	await loginWithAuth0(page);
 
 	await page.goto("/organization");
 	const name = `E2E Org ${Date.now()}`;
@@ -45,12 +37,7 @@ test("user can create an organization and it becomes the current one", async ({
 test("user can view an organization's members and invite a new one", async ({
 	page,
 }) => {
-	test.skip(
-		!EMAIL || !PASSWORD,
-		"E2E_LOGIN_EMAIL and E2E_LOGIN_PASSWORD must be set to run this test, see .env.e2e.example",
-	);
-
-	await loginWithAuth0(page, EMAIL as string, PASSWORD as string);
+	await loginWithAuth0(page);
 
 	await page.goto("/organization");
 	const name = `E2E Detail Org ${Date.now()}`;

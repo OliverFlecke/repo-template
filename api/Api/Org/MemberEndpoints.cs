@@ -3,6 +3,8 @@ using Api.OpenFGA;
 using Api.Org.Model.Events;
 using Api.Org.Response;
 
+using Auth0;
+
 using Marten;
 
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -33,6 +35,7 @@ public static class OrganizationMembers
 			.RequireAuthorization(new OpenFgaAuthorizationRequirement("can_add", "organization"));
 	}
 
+	[EndpointName("GetMyOrganizations")]
 	static async Task<Ok<IReadOnlyList<OrganizationMembership>>> GetMyOrganizations(
 		[FromServices] IQuerySession session,
 		[FromServices] ICurrentUser currentUser)
@@ -51,9 +54,12 @@ public static class OrganizationMembers
 		return TypedResults.Ok(result);
 	}
 
+	[EndpointName("GetOrganization")]
 	static async Task<Results<Ok<OrganizationDetails>, NotFound>> GetOrganization(
 		Guid id,
-		[FromServices] IDocumentSession session)
+		[FromServices] IDocumentSession session,
+		[FromServices] Auth0ApiClient auth0,
+		CancellationToken cancellationToken)
 	{
 		// FetchLatest reads directly off the event stream rather than the async-projected
 		// snapshot doc, so a just-created organization is visible immediately.
@@ -63,14 +69,22 @@ public static class OrganizationMembers
 			return TypedResults.NotFound();
 		}
 
+		var profiles = await auth0.GetUsers(org.Members.Keys, cancellationToken);
+
 		return TypedResults.Ok(new OrganizationDetails
 		{
 			Id = org.Id,
 			Name = org.Name,
-			Members = [.. org.Members.Select(m => new OrganizationMemberInfo { UserId = m.Key, Role = m.Value })],
+			Members = [.. org.Members.Select(m => new OrganizationMemberInfo
+			{
+				UserId = m.Key,
+				Name = profiles.GetValueOrDefault(m.Key)?.Name,
+				Role = m.Value,
+			})],
 		});
 	}
 
+	[EndpointName("CreateOrganization")]
 	static async Task<Created<Organization>> CreateOrganization(
 		[FromServices] IDocumentSession session,
 		[FromServices] IMartenOutbox outbox,
@@ -93,6 +107,7 @@ public static class OrganizationMembers
 		return TypedResults.Created($"/api/v1/organization/{org.Id}", org);
 	}
 
+	[EndpointName("AddOrganizationMember")]
 	static async Task<Results<Ok, NotFound>> AddMember(
 		Guid id,
 		AddMemberRequest body,
@@ -117,6 +132,7 @@ public static class OrganizationMembers
 
 	/// <summary>Removes a member from an organization. Idempotent: responds 200 whether the user was
 	/// actually removed by this call or was already not a member.</summary>
+	[EndpointName("RemoveOrganizationMember")]
 	static async Task<Results<Ok, NotFound>> RemoveMember(
 		Guid id,
 		string userId,
@@ -145,6 +161,7 @@ public static class OrganizationMembers
 	/// <summary>Removes the current user from an organization. Only requires that the caller is
 	/// currently a member (no can_add relation needed, unlike AddMember/RemoveMember). If the
 	/// caller is the last member, the organization is deleted along with them.</summary>
+	[EndpointName("LeaveOrganization")]
 	static async Task<Results<Ok, NotFound, ForbidHttpResult>> LeaveOrganization(
 		Guid id,
 		[FromServices] IDocumentSession session,
@@ -183,6 +200,7 @@ public static class OrganizationMembers
 	/// <summary>Creates an invite for the given email to join an organization, and returns it with
 	/// its id, which doubles as the join token embedded in the invite link. No email is sent yet;
 	/// the caller is responsible for sharing the link.</summary>
+	[EndpointName("CreateOrganizationInvite")]
 	static async Task<Results<Created<OrganizationInvite>, NotFound>> CreateInvite(
 		Guid id,
 		CreateInviteRequest body,

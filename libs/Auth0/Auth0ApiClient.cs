@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -52,6 +53,49 @@ public sealed class Auth0ApiClient(
 	/// </summary>
 	public Task UpdatePassword(string userId, string password, CancellationToken cancellationToken = default) =>
 		PatchUser(userId, new UpdateUserRequest { Password = password, Connection = config.Connection }, cancellationToken);
+
+	/// <summary>Fetches a user's profile (name, email), or null if Auth0 has no such user.</summary>
+	[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "All types used are included in the generated code for JsonSerializer.")]
+	[UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
+	public async Task<UserProfile?> GetUser(string userId, CancellationToken cancellationToken = default)
+	{
+		var token = await GetManagementToken(cancellationToken);
+		using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/v2/users/{Uri.EscapeDataString(userId)}");
+		request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+		var response = await http.SendAsync(request, cancellationToken);
+		if (response.StatusCode == HttpStatusCode.NotFound)
+		{
+			return null;
+		}
+		await EnsureSuccess(response, cancellationToken);
+
+		return await response.Content.ReadFromJsonAsync<UserProfile>(Json, cancellationToken);
+	}
+
+	/// <summary>Fetches profiles for a set of users, keyed by user id. This is a best-effort
+	/// enrichment lookup: users Auth0 doesn't know about (e.g. deleted since) and users a failed
+	/// or unreachable Auth0 request couldn't be fetched for are both omitted rather than failing
+	/// the whole batch - callers are expected to fall back to something else (e.g. the raw user
+	/// id) for any user missing from the result.</summary>
+	public async Task<IReadOnlyDictionary<string, UserProfile>> GetUsers(
+		IEnumerable<string> userIds,
+		CancellationToken cancellationToken = default)
+	{
+		var profiles = await Task.WhenAll(userIds.Select(async userId =>
+		{
+			try
+			{
+				return (userId, profile: await GetUser(userId, cancellationToken));
+			}
+			catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+			{
+				logger.LogWarning(ex, "Failed to fetch Auth0 profile for user {UserId}", userId);
+				return (userId, profile: null);
+			}
+		}));
+		return profiles.Where(p => p.profile is not null).ToDictionary(p => p.userId, p => p.profile!);
+	}
 
 	/// <summary>Triggers a fresh verification email for the given user.</summary>
 	[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "All types used are included in the generated code for JsonSerializer.")]
@@ -189,6 +233,13 @@ sealed record VerificationEmailRequest
 	public required string UserId { get; init; }
 }
 
+public sealed record UserProfile
+{
+	public required string UserId { get; init; }
+	public string? Name { get; init; }
+	public string? Email { get; init; }
+}
+
 sealed record Auth0ErrorResponse
 {
 	public string? Message { get; init; }
@@ -199,4 +250,5 @@ sealed record Auth0ErrorResponse
 [JsonSerializable(typeof(UpdateUserRequest))]
 [JsonSerializable(typeof(VerificationEmailRequest))]
 [JsonSerializable(typeof(Auth0ErrorResponse))]
+[JsonSerializable(typeof(UserProfile))]
 partial class Auth0JsonSerializerContext : JsonSerializerContext { }

@@ -5,9 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useAuth } from "react-oidc-context";
 import {
-	getApiV1InviteByTokenOptions,
-	getApiV1OrganizationQueryKey,
-	postApiV1InviteByTokenAcceptMutation,
+	acceptInviteMutation,
+	getInviteOptions,
+	getMyOrganizationsQueryKey,
 } from "@/api/@tanstack/react-query.gen";
 import { useOrganization } from "@/component/organization/OrganizationProvider";
 import { Button } from "@/ui/Button/Button";
@@ -33,18 +33,18 @@ function JoinContent() {
 		isLoading,
 		isError,
 	} = useQuery({
-		...getApiV1InviteByTokenOptions({ path: { token } }),
+		...getInviteOptions({ path: { token } }),
 		enabled: token !== "",
 	});
 
 	const { mutate, isPending, error } = useMutation({
-		...postApiV1InviteByTokenAcceptMutation(),
+		...acceptInviteMutation(),
 		onSuccess: () => {
 			if (!invite) {
 				return;
 			}
 			queryClient.invalidateQueries({
-				queryKey: getApiV1OrganizationQueryKey(),
+				queryKey: getMyOrganizationsQueryKey(),
 			});
 			setCurrentOrganizationId(invite.organizationId);
 			router.push(`/organization/detail?id=${invite.organizationId}`);

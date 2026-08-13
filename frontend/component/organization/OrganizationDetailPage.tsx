@@ -1,11 +1,14 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { useAuth } from "react-oidc-context";
 import {
-	getApiV1OrganizationByIdOptions,
-	postApiV1OrganizationByIdInviteMutation,
+	createOrganizationInviteMutation,
+	getOrganizationOptions,
+	getOrganizationQueryKey,
+	removeOrganizationMemberMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { Button } from "@/ui/Button/Button";
 import { FormField } from "@/ui/FormField/FormField";
@@ -24,23 +27,38 @@ function OrganizationDetailContent() {
 	const id = useSearchParams().get("id") ?? "";
 	const [email, setEmail] = useState("");
 	const [inviteLink, setInviteLink] = useState<string | null>(null);
+	const { user } = useAuth();
+	const queryClient = useQueryClient();
 
 	const {
 		data: org,
 		isLoading,
 		isError,
 	} = useQuery({
-		...getApiV1OrganizationByIdOptions({ path: { id } }),
+		...getOrganizationOptions({ path: { id } }),
 		enabled: id !== "",
 	});
 
 	const { mutate, isPending, error } = useMutation({
-		...postApiV1OrganizationByIdInviteMutation(),
+		...createOrganizationInviteMutation(),
 		onSuccess: (invite) => {
 			setInviteLink(`${window.location.origin}/join?token=${invite.id}`);
 			setEmail("");
 		},
 	});
+
+	const { mutate: removeMember } = useMutation({
+		...removeOrganizationMemberMutation(),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: getOrganizationQueryKey({ path: { id } }),
+			});
+		},
+	});
+
+	const isAdmin = org?.members.some(
+		(member) => member.userId === user?.profile.sub && member.role === "Admin",
+	);
 
 	return (
 		<main className={styles.main}>
@@ -58,8 +76,23 @@ function OrganizationDetailContent() {
 					<ul className={styles.list}>
 						{org.members.map((member) => (
 							<li key={member.userId} className={styles.item}>
-								<span className={styles.name}>{member.userId}</span>
+								<span className={styles.name}>
+									{member.name ?? member.userId}
+								</span>
 								<span className={styles.role}>{member.role}</span>
+								{isAdmin && member.role !== "Admin" && (
+									<Button
+										type="button"
+										variant="text"
+										color="danger"
+										size="sm"
+										onClick={() =>
+											removeMember({ path: { id, userId: member.userId } })
+										}
+									>
+										Remove
+									</Button>
+								)}
 							</li>
 						))}
 					</ul>

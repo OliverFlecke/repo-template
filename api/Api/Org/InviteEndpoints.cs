@@ -22,6 +22,7 @@ public static class Invites
 		builder.MapPost("/{token:guid}/accept", AcceptInvite);
 	}
 
+	[EndpointName("GetInvite")]
 	static async Task<Results<Ok<InviteDetails>, NotFound>> GetInvite(
 		Guid token,
 		[FromServices] IDocumentSession session)
@@ -55,6 +56,7 @@ public static class Invites
 	/// the invited email - anyone holding the token can join. Acceptable while invites are only
 	/// ever shared as a manually-copied link; revisit (expiry, email-matching) once they're
 	/// actually emailed out.</summary>
+	[EndpointName("AcceptInvite")]
 	static async Task<Results<Ok, NotFound, Conflict>> AcceptInvite(
 		Guid token,
 		[FromServices] IDocumentSession session,
