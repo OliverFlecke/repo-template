@@ -35,5 +35,26 @@ docker compose -f workspace/example_project/prod_00/compose.yaml down
 ```
 
 `workspace/` and `jobs/` are generated (gitignored) — re-run the commands
-above to regenerate them. To change the number of clients, edit the
-`participants` list in `project.yml` and re-provision.
+above to regenerate them. To change the number of clients before first
+provisioning, edit the `participants` list in `project.yml` and re-provision.
+
+## Adding a client to a running federation
+
+`workspace/example_project/prod_00` is the **live** compose stack — the one
+`docker compose up` above started. Every subsequent `nvflare provision` run
+(certs are cheap and stable: re-provisioning reuses the existing root CA and
+reissues byte-identical certs for unchanged participants) lands in a new
+`prod_01`, `prod_02`, ... and never touches `prod_00`.
+
+`add-client.sh` uses that to onboard one new site without touching the
+server or any already-connected client:
+
+```sh
+./add-client.sh site-4
+```
+
+It adds `site-4` to `project.yml`, re-provisions into a fresh `prod_NN`,
+copies just `site-4`'s signed startup kit and compose service block into the
+live `prod_00`, and starts only that container. `server`/`site-1..3` are
+never restarted — the server has no static client roster, it just accepts
+any connection presenting a cert signed by the trusted root CA.

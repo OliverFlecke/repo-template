@@ -1,7 +1,6 @@
 api_version: 3
 name: example_project
 description: Minimal local NVFlare deployment (server + clients) for docker-compose
-
 participants:
   - name: server
     type: server
@@ -17,6 +16,10 @@ participants:
   - name: site-3
     type: client
     org: maritime
+  - name: site-4
+    type: client
+    org: maritime
+
   - name: admin@flecke.xyz
     type: admin
     org: maritime
