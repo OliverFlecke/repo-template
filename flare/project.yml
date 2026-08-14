@@ -1,0 +1,40 @@
+api_version: 3
+name: example_project
+description: Minimal local NVFlare deployment (server + clients) for docker-compose
+
+participants:
+  - name: server
+    type: server
+    org: maritime
+    fed_learn_port: 8002
+    admin_port: 8003
+  - name: site-1
+    type: client
+    org: maritime
+  - name: site-2
+    type: client
+    org: maritime
+  - name: site-3
+    type: client
+    org: maritime
+  - name: admin@flecke.xyz
+    type: admin
+    org: maritime
+    role: project_admin
+
+builders:
+  - path: nvflare.lighter.impl.workspace.WorkspaceBuilder
+    args:
+      template_file:
+        - master_template.yml
+        - aws_template.yml
+        - azure_template.yml
+  - path: nvflare.lighter.impl.static_file.StaticFileBuilder
+    args:
+      config_folder: config
+  - path: nvflare.lighter.impl.cert.CertBuilder
+  - path: nvflare.lighter.impl.signature.SignatureBuilder
+  - path: nvflare.lighter.impl.docker.DockerBuilder
+    args:
+      base_image: ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+      requirements_file: requirements.txt
