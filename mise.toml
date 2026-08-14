@@ -11,6 +11,8 @@
 	"npm:sort-package-json" = "latest"
 	"pipx:sqlfluff"         = "latest"
 	pnpm                    = "11"
+	python                  = "3.14"
 	rust                    = "1.97"
 	taplo                   = "latest"
+	uv                      = "0.12.4"
 	yamllint                = "latest"

@@ -59,6 +59,7 @@ hooks {
 		steps = {
 			["frontend"] = frontend,
 			["rust"] = rust,
+			["dotnet"] = dotnet,
 			...shared,
 			["check-merge-conflict"] = Builtins.check_merge_conflict,
 			["check-added-large-files"] = Builtins.check_added_large_files,
