@@ -8,6 +8,7 @@ import {
 import ClientsTable from "./ClientsTable";
 import styles from "./FlareStatusPage.module.css";
 import JobsTable from "./JobsTable";
+import SubmitJobForm from "./SubmitJobForm";
 
 export default function FlareStatusPage() {
 	const {
@@ -54,6 +55,11 @@ export default function FlareStatusPage() {
 			<section className={styles.section}>
 				<h2>Connected clients</h2>
 				<ClientsTable data={health?.client_info ?? []} />
+			</section>
+
+			<section className={styles.section}>
+				<h2>Submit job</h2>
+				<SubmitJobForm />
 			</section>
 
 			{jobsError && <p className={styles.error}>Could not load jobs.</p>}

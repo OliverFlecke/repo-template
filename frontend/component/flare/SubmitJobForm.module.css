@@ -1,0 +1,9 @@
+.form {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.error {
+	color: var(--color-danger);
+}

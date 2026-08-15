@@ -132,6 +132,18 @@ async def list_clients(request: Request, session: SessionDep) -> list[ClientInfo
     ]
 
 
+@app.get("/job-definitions", operation_id="listJobDefinitions")
+async def list_job_definitions() -> list[str]:
+    if not os.path.isdir(FLARE_JOBS_DIR):
+        return []
+    return sorted(
+        name
+        for name in os.listdir(FLARE_JOBS_DIR)
+        if not name.startswith(".")
+        and os.path.isdir(os.path.join(FLARE_JOBS_DIR, name))
+    )
+
+
 @app.get("/jobs", operation_id="listJobs")
 async def list_jobs(request: Request, session: SessionDep) -> JobsResponse:
     jobs = await flare_call(request, lambda: session.list_jobs(detailed=True))
