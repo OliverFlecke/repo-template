@@ -8,7 +8,7 @@
 		"build": "pnpm build:api && pnpm build:app",
 		"build:api": "openapi-ts",
 		"build:app": "next build",
-		"clean:api": "rm -r api/",
+		"clean:api": "rm -r api/ api-flare/",
 		"fmt": "biome format --write",
 		"lint": "biome lint",
 		"story:build": "ladle build",

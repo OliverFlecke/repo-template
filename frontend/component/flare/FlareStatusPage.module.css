@@ -1,0 +1,31 @@
+.main {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+	padding: 2rem;
+}
+
+.section {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.error {
+	color: var(--color-danger);
+}
+
+.statusLabel {
+	display: inline-block;
+	padding: 2px var(--space-2);
+	border-radius: var(--radius-full);
+	font-size: var(--font-size-sm);
+	background: var(--bg-secondary);
+	color: var(--text-primary);
+	text-transform: capitalize;
+}
+
+.since {
+	color: var(--text-secondary);
+	font-size: var(--font-size-sm);
+}

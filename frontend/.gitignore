@@ -2,6 +2,7 @@
 .next/
 out/
 api/
+api-flare/
 node_modules/
 certificates/
 next-env.d.ts

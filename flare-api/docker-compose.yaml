@@ -5,7 +5,8 @@ services:
     container_name: flare-api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:80"
+      # not 8080 - the .NET api already uses that port in local dev
+      - "127.0.0.1:8090:80"
     volumes:
       - ../flare/workspace/mip/prod_00/admin@flecke.xyz:/admin:ro
       # not :ro - submit_job() writes a signature file into the job folder

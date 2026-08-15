@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { PropsWithChildren } from "react";
 import { client } from "@/api/client.gen";
+import { client as flareClient } from "@/api-flare/client.gen";
 import { getUser } from "@/component/auth/config";
 
 /// Sets the configuration for the client, such as the base URL and the authorization.
@@ -10,6 +11,11 @@ import { getUser } from "@/component/auth/config";
 client.setConfig({
 	baseUrl: process.env.NEXT_PUBLIC_API_HOST,
 	auth: () => getUser()?.access_token,
+});
+
+// flare-api has no auth of its own yet, so no `auth` here (see flare-api/README.md).
+flareClient.setConfig({
+	baseUrl: process.env.NEXT_PUBLIC_FLARE_API_HOST,
 });
 
 const queryClient = new QueryClient();

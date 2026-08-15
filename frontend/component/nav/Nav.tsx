@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, LayoutDashboard, Shield } from "lucide-react";
+import { Building2, LayoutDashboard, Server, Shield } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "react-oidc-context";
 import { useLogout } from "@/component/auth";
@@ -71,6 +71,16 @@ export default function Nav() {
 								label="Admin"
 								icon={<Shield size={20} aria-hidden />}
 								active={pathname === "/admin"}
+							/>
+						</li>
+					)}
+					{isAdmin && (
+						<li>
+							<NavItem
+								href="/flare"
+								label="Flare"
+								icon={<Server size={20} aria-hidden />}
+								active={pathname === "/flare"}
 							/>
 						</li>
 					)}

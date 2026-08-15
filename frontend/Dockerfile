@@ -17,6 +17,12 @@ COPY api/ api/
 WORKDIR "/src/"
 RUN dotnet build "api/Api/Api.csproj" -c "${BUILD_CONFIGURATION}" -o /app/build
 
+FROM ghcr.io/astral-sh/uv:python3.14-alpine AS flare-api-builder
+WORKDIR /src
+COPY flare-api/ .
+RUN uv sync --frozen --no-cache && \
+	uv run python export_openapi.py
+
 # Build frontend
 FROM node:26.5-alpine3.24 AS base
 FROM base AS builder
@@ -31,6 +37,7 @@ COPY frontend/package.json frontend/pnpm-*.yaml ./
 RUN pnpm install --frozen-lockfile --yes
 
 COPY --from=api-builder /src/api/Api/openapi.json ../api/Api/openapi.json
+COPY --from=flare-api-builder /src/openapi.json ../flare-api/openapi.json
 COPY frontend/ .
 
 RUN OUTPUT_MODE=standalone pnpm build

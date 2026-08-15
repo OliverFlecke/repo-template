@@ -31,10 +31,14 @@ They run against a real dev server, which Playwright starts automatically on
 port 3000 (this port is fixed, since it's the origin registered as an allowed
 Auth0 callback URL).
 
-Before the first run, generate the OpenAPI client that the app imports at
-build time (see `build:api` below) and install the Playwright browsers:
+Before the first run, generate the OpenAPI clients the app imports at build
+time and install the Playwright browsers. `build:api` only turns already-built
+specs into TypeScript - build the specs themselves first:
 
 ```sh
+(cd ../api/Api && dotnet build)             # writes api/Api/openapi.json
+(cd ../flare-api && uv run python export_openapi.py) # writes flare-api/openapi.json
+
 pnpm build:api
 pnpm exec playwright install chromium
 ```

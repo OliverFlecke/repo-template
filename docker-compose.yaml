@@ -135,6 +135,24 @@ services:
       retries: 5
       start_period: 10s
 
+  # FastAPI wrapper around the FLARE server's admin API (see flare-api/README.md).
+  # Requires the FLARE federation to already be running - it joins that
+  # project's external network (see flare/workspace/mip/prod_00/compose.yaml)
+  # and mounts its admin startup kit + job definitions. Without it, this
+  # service (and `docker compose up` for the whole file) fails to start.
+  flare-api:
+    build:
+      context: ./flare-api
+    container_name: flare-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8090:80"
+    volumes:
+      - ./flare/workspace/mip/prod_00/admin@flecke.xyz:/admin:ro
+      - ./flare/jobs:/jobs
+    networks:
+      - flare
+
   # Jaeger is used to collect OpenTelemetry. Visit the UI port to see traces
   # for the various applications.
   # jaeger:
@@ -238,3 +256,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+networks:
+  flare:
+    name: prod_00_default
+    external: true
