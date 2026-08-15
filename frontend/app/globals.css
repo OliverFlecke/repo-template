@@ -1,4 +1,7 @@
 :root {
+	--nav-width-slim: 64px;
+	--nav-width-expanded: 220px;
+
 	--bg-primary: #ffffff;
 	--bg-secondary: #f2f2f2;
 

@@ -6,7 +6,6 @@ import AuthProvider from "@/component/auth/Provider";
 import Nav from "@/component/nav/Nav";
 import OrganizationProvider from "@/component/organization/OrganizationProvider";
 import QueryProvider from "@/component/QueryProvider";
-import styles from "./layout.module.css";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -30,10 +29,7 @@ export default function RootLayout({ children }: Readonly<PropsWithChildren>) {
 				<AuthProvider>
 					<QueryProvider>
 						<OrganizationProvider>
-							<div className={styles.shell}>
-								<Nav />
-								<div className={styles.content}>{children}</div>
-							</div>
+							<Nav>{children}</Nav>
 						</OrganizationProvider>
 					</QueryProvider>
 				</AuthProvider>

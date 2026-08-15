@@ -13,8 +13,9 @@ import { NavItem } from "./NavItem";
 import { PinToggle } from "./PinToggle";
 import { useMobileNav } from "./useMobileNav";
 import { usePinned } from "./usePinned";
+import { PropsWithChildren } from "react";
 
-export default function Nav() {
+export default function Nav({ children }: Readonly<PropsWithChildren>) {
 	const { user, signinRedirect } = useAuth();
 	const logout = useLogout();
 	const isAdmin = getRoles(user).includes("admin");
@@ -93,6 +94,10 @@ export default function Nav() {
 					onLogout={logout}
 				/>
 			</nav>
+
+			<div className={cx(styles.content, pinned && styles.pinned)}>
+				{children}
+			</div>
 		</>
 	);
 }

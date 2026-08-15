@@ -1,13 +1,10 @@
 .nav {
-	--width-slim: 64px;
-	--width-expanded: 220px;
-
 	display: flex;
 	flex-direction: column;
 	flex-shrink: 0;
-	width: var(--width-slim);
+	width: var(--nav-width-slim);
 	height: 100dvh;
-	position: sticky;
+	position: fixed;
 	top: 0;
 	overflow: hidden;
 	background: var(--bg-secondary);
@@ -16,7 +13,27 @@
 	z-index: 20;
 
 	&.pinned {
-		width: var(--width-expanded);
+		width: var(--nav-width-expanded);
+	}
+}
+
+.content {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+
+	transition: padding var(--transition-fast);
+	padding-left: var(--nav-width-slim);
+
+	&.pinned {
+		padding-left: var(--nav-width-expanded);
+	}
+}
+
+@media (max-width: 768px) {
+	.content {
+		padding-top: 56px;
 	}
 }
 
