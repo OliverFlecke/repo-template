@@ -19,6 +19,11 @@ uv sync
 #    (containers run Python 3.14 via uv, see provision.sh)
 ./provision.sh
 
+# builds two images: nvflare-server and nvflare-client. The client image is
+# generic - client_train's command (including `uid=...`) is baked into its
+# entrypoint, parameterized by the NVFLARE_CLIENT_NAME/NVFLARE_ORG env vars
+# compose.yaml sets per service - so the same image runs every client site.
+
 # 2. build and start the server + client containers
 cd workspace/example_project/prod_00
 docker compose up --build -d

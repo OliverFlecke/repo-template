@@ -15,5 +15,6 @@ docker run --rm \
 	--network prod_00_default \
 	-v "$PWD/$PROD_DIR/admin@flecke.xyz:/admin" \
 	-v "$PWD/jobs:/jobs" \
-	nvflare-service \
-	nvflare job submit -j /jobs/counter --startup-kit /admin
+	--entrypoint nvflare \
+	nvflare-client \
+	job submit -j /jobs/counter --startup-kit /admin
