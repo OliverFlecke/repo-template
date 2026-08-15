@@ -1,7 +1,9 @@
 [project]
 	dependencies = [
 		"fastapi[standard]>=0.141.1",
+		"httpx>=0.28.1",
 		"nvflare>=2.8.1",
+		"pyjwt[crypto]>=2.13.0",
 		"pyyaml>=6.0.3",
 	]
 	description = "Add your description here"

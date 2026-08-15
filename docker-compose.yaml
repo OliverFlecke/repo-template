@@ -145,6 +145,9 @@ services:
       context: ./flare-api
     container_name: flare-api
     restart: unless-stopped
+    depends_on:
+      openfga-setup:
+        condition: service_completed_successfully
     ports:
       - "127.0.0.1:8090:80"
     volumes:
@@ -154,7 +157,22 @@ services:
       # rw - provisionClient adds participants and re-provisions into these
       - ./flare/project.yml:/flare-project/project.yml
       - ./flare/workspace:/flare-project/workspace
+      - ./tmp/openfga:/shared:ro
+    # OPENFGA_STORE_ID/MODEL_ID are generated at runtime by openfga-setup (see
+    # api's entrypoint override above for why this can't just be env:).
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -a
+        [ -f /shared/openfga.env ] && . /shared/openfga.env
+        set +a
+        export OPENFGA_HOST="http://openfga:8080"
+        export OPENFGA_STORE_ID="$$OpenFga__StoreId"
+        export OPENFGA_MODEL_ID="$$OpenFga__ModelId"
+        exec /app/.venv/bin/fastapi run main.py --port 80 --host 0.0.0.0
     networks:
+      # default (for db/openfga) as well as the federation's external network
+      - default
       - flare
 
   # Jaeger is used to collect OpenTelemetry. Visit the UI port to see traces

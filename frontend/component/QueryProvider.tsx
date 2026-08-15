@@ -13,9 +13,11 @@ client.setConfig({
 	auth: () => getUser()?.access_token,
 });
 
-// flare-api has no auth of its own yet, so no `auth` here (see flare-api/README.md).
+// flare-api requires the same bearer token, checked against OpenFGA
+// (admin on system:core) rather than validated per-route (see flare-api/README.md).
 flareClient.setConfig({
 	baseUrl: process.env.NEXT_PUBLIC_FLARE_API_HOST,
+	auth: () => getUser()?.access_token,
 });
 
 const queryClient = new QueryClient();

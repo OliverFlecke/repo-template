@@ -26,16 +26,31 @@ and mounts the admin startup kit and job definitions from it.
 ```sh
 docker compose up --build -d
 
-curl http://localhost:8090/health
-curl http://localhost:8090/clients
-curl http://localhost:8090/jobs
-curl -X POST http://localhost:8090/jobs/counter
-curl -X POST http://localhost:8090/clients/site-6 -o site-6.zip
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8090/health
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8090/clients
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8090/jobs
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8090/jobs/counter
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8090/clients/site-6 -o site-6.zip
 ```
 
 `FLARE_STARTUP_KIT_DIR` defaults to `/admin`, `FLARE_ADMIN_USER` to
 `admin@flecke.xyz`, `FLARE_JOBS_DIR` to `/jobs` — override in
 `docker-compose.yaml` if the project or admin username changes.
+
+## Authorization
+
+Every endpoint (see `auth.py`) requires a bearer token for a user with the
+`admin` relation on `system:core` in OpenFGA — the same check the .NET api
+applies to its `v1/admin` group (see
+`libs/OpenFGA/OpenFgaAuthorizationHandler.cs`), reusing the same OpenFGA
+store. Configure via env vars: `AUTH_AUTHORITY`
+(defaults to the Auth0 tenant used by `api/`), `AUTH_AUDIENCE` (unset skips
+audience validation, e.g. for local dev), `OPENFGA_HOST`, `OPENFGA_STORE_ID`,
+`OPENFGA_MODEL_ID`. When run via the root `docker-compose.yaml`, the store/model
+ids are sourced from the same `tmp/openfga/openfga.env` file `api` uses,
+written by `openfga-setup`.
 
 ## OpenAPI client
 

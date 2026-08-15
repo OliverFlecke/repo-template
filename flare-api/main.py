@@ -9,11 +9,14 @@ from contextlib import asynccontextmanager
 from io import BytesIO
 from typing import Annotated, TypeVar
 
+import httpx
 import yaml
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from nvflare.fuel.flare_api.flare_api import Session, new_secure_session
 from pydantic import BaseModel
+
+from auth import require_system_admin
 
 # Auth to the FLARE server is mTLS: client.crt/client.key/rootCA.pem from a
 # provisioned admin startup kit (see flare/submit.sh), mounted read-only into
@@ -99,16 +102,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.flare_lock = asyncio.Lock()
     # project.yml/workspace are mutated by provision_client - one at a time.
     app.state.provision_lock = asyncio.Lock()
-    try:
-        yield
-    finally:
-        await asyncio.to_thread(session.close)
+    async with httpx.AsyncClient() as http_client:
+        app.state.http_client = http_client
+        try:
+            yield
+        finally:
+            await asyncio.to_thread(session.close)
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, dependencies=[Depends(require_system_admin)])
 
-# No auth of its own yet (frontend auth for this API is TODO) and no cookies
-# are involved, so a wide-open CORS policy is fine for now.
+# Every endpoint requires a valid bearer token for a user who is an admin on
+# system:core in OpenFGA (see auth.py) - a browser origin can't forge that,
+# so CORS itself can stay wide open.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
