@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+test_*.py
+.env
+.env.*
+.python-version
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose.yaml
+README.md
+openapi.json
