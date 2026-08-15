@@ -263,5 +263,5 @@ services:
 
 networks:
   flare:
-    name: prod_00_default
+    name: flare_default
     external: true

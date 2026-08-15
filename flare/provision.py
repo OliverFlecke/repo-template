@@ -65,6 +65,7 @@ services = {
             f"./{server['name']}:/workspace",
             "nvflare_svc_persist:/tmp/nvflare/",
         ],
+        "networks": ["prod"],
     }
 }
 volumes = {"nvflare_svc_persist": None}
@@ -80,6 +81,13 @@ for i, c in enumerate(clients):
         "ports": [f"127.0.0.1:{8091 + i}:8080"],
     }
 
-compose = {"name": "flare", "services": services, "volumes": volumes}
+networks = {"default": {"prod": None}}
+
+compose = {
+    "name": "flare",
+    "services": services,
+    "volumes": volumes,
+    "network": networks,
+}
 with open(prod_dir / "compose.yaml", "w") as f:
     yaml.safe_dump(compose, f, sort_keys=False)
