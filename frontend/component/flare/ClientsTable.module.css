@@ -1,0 +1,16 @@
+.status {
+	display: inline-block;
+	padding: 2px var(--space-2);
+	border-radius: var(--radius-full);
+	font-size: var(--font-size-sm);
+}
+
+.connected {
+	color: var(--color-on-primary);
+	background: var(--color-success);
+}
+
+.disconnected {
+	color: var(--text-secondary);
+	background: var(--bg-secondary);
+}

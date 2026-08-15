@@ -1,8 +1,11 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { provisionClientMutation } from "@/api-flare/@tanstack/react-query.gen";
+import {
+	listClientsQueryKey,
+	provisionClientMutation,
+} from "@/api-flare/@tanstack/react-query.gen";
 import { Button } from "@/ui/Button/Button";
 import { Input } from "@/ui/Input/Input";
 import styles from "./ProvisionClientForm.module.css";
@@ -18,6 +21,7 @@ function downloadBlob(blob: Blob, filename: string) {
 
 export default function ProvisionClientForm() {
 	const [name, setName] = useState("");
+	const queryClient = useQueryClient();
 
 	const {
 		mutate: provisionClient,
@@ -29,6 +33,7 @@ export default function ProvisionClientForm() {
 		onSuccess: (blob, variables) => {
 			downloadBlob(blob, `${variables.path.name}.zip`);
 			setName("");
+			queryClient.invalidateQueries({ queryKey: listClientsQueryKey() });
 		},
 	});
 

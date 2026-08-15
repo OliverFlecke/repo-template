@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	getHealthOptions,
+	listClientsOptions,
 	listJobsOptions,
 } from "@/api-flare/@tanstack/react-query.gen";
 import ClientsTable from "./ClientsTable";
@@ -17,6 +18,12 @@ export default function FlareStatusPage() {
 		isLoading: healthLoading,
 		isError: healthError,
 	} = useQuery(getHealthOptions());
+
+	const {
+		data: clients,
+		isLoading: clientsLoading,
+		isError: clientsError,
+	} = useQuery(listClientsOptions());
 
 	const {
 		data: jobs,
@@ -54,8 +61,12 @@ export default function FlareStatusPage() {
 			)}
 
 			<section className={styles.section}>
-				<h2>Connected clients</h2>
-				<ClientsTable data={health?.client_info ?? []} />
+				<h2>Clients</h2>
+				{clientsError && (
+					<p className={styles.error}>Could not load clients.</p>
+				)}
+				{clientsLoading && <p>Loading...</p>}
+				{clients && <ClientsTable data={clients} />}
 			</section>
 
 			<section className={styles.section}>

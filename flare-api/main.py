@@ -52,6 +52,13 @@ class ClientInfo(BaseModel):
     last_connect_time: float | None
 
 
+class ClientStatus(BaseModel):
+    name: str
+    org: str | None = None
+    connected: bool
+    last_connect_time: float | None = None
+
+
 class JobSummary(BaseModel):
     job_id: str
     app_name: str | None = None
@@ -147,11 +154,30 @@ async def health(request: Request, session: SessionDep) -> HealthResponse:
 
 
 @app.get("/clients", operation_id="listClients")
-async def list_clients(request: Request, session: SessionDep) -> list[ClientInfo]:
+async def list_clients(request: Request, session: SessionDep) -> list[ClientStatus]:
     info = await flare_call(request, session.get_system_info)
+    connected = {c.name: c.last_connect_time for c in info.client_info}
+
+    with open(FLARE_PROJECT_YML) as f:
+        project = yaml.safe_load(f)
+    provisioned = {
+        p["name"]: p.get("org")
+        for p in project["participants"]
+        if p["type"] == "client"
+    }
+
+    # union, not just provisioned - a client could be connected via a cert
+    # issued outside project.yml (the server trusts any cert signed by the
+    # root CA, see flare/README.md), so don't hide it just because of that.
+    names = sorted(set(provisioned) | set(connected))
     return [
-        ClientInfo(name=c.name, last_connect_time=c.last_connect_time)
-        for c in info.client_info
+        ClientStatus(
+            name=name,
+            org=provisioned.get(name),
+            connected=name in connected,
+            last_connect_time=connected.get(name),
+        )
+        for name in names
     ]
 
 
@@ -266,7 +292,9 @@ async def list_job_definitions() -> list[str]:
 
 @app.get("/jobs", operation_id="listJobs")
 async def list_jobs(request: Request, session: SessionDep) -> JobsResponse:
-    jobs = await flare_call(request, lambda: session.list_jobs(detailed=True))
+    jobs = await flare_call(
+        request, lambda: session.list_jobs(detailed=True, reverse=True)
+    )
     parsed = [Job.model_validate(j) for j in jobs]
     active = [j for j in parsed if not (j.status or "").startswith("FINISHED")]
     completed = [j for j in parsed if (j.status or "").startswith("FINISHED")]
