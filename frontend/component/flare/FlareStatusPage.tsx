@@ -8,6 +8,7 @@ import {
 import ClientsTable from "./ClientsTable";
 import styles from "./FlareStatusPage.module.css";
 import JobsTable from "./JobsTable";
+import ProvisionClientForm from "./ProvisionClientForm";
 import SubmitJobForm from "./SubmitJobForm";
 
 export default function FlareStatusPage() {
@@ -55,6 +56,11 @@ export default function FlareStatusPage() {
 			<section className={styles.section}>
 				<h2>Connected clients</h2>
 				<ClientsTable data={health?.client_info ?? []} />
+			</section>
+
+			<section className={styles.section}>
+				<h2>Provision client</h2>
+				<ProvisionClientForm />
 			</section>
 
 			<section className={styles.section}>

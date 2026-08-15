@@ -36,8 +36,16 @@ if not org:
 insert_at = next(i for i, p in enumerate(participants) if p["type"] == "admin")
 participants.insert(insert_at, {"name": name, "type": "client", "org": org})
 
+
+class IndentedDumper(yaml.SafeDumper):
+	# PyYAML's default dumper doesn't indent list items under their parent
+	# key, which rewrites project.yml's whole formatting on every save.
+	def increase_indent(self, flow=False, indentless=False):
+		return super().increase_indent(flow, False)
+
+
 with open("project.yml", "w") as f:
-	yaml.safe_dump(project, f, sort_keys=False)
+	yaml.dump(project, f, Dumper=IndentedDumper, sort_keys=False, default_flow_style=False)
 EOF
 
 ./provision.sh

@@ -149,7 +149,11 @@ services:
       - "127.0.0.1:8090:80"
     volumes:
       - ./flare/workspace/mip/prod_00/admin@flecke.xyz:/admin:ro
+      # not :ro - submit_job() writes a signature file into the job folder
       - ./flare/jobs:/jobs
+      # rw - provisionClient adds participants and re-provisions into these
+      - ./flare/project.yml:/flare-project/project.yml
+      - ./flare/workspace:/flare-project/workspace
     networks:
       - flare
 

@@ -1,7 +1,11 @@
 [project]
-	dependencies    = ["fastapi[standard]>=0.141.1", "nvflare>=2.8.1"]
-	description     = "Add your description here"
-	name            = "flare-api"
-	readme          = "README.md"
+	dependencies = [
+		"fastapi[standard]>=0.141.1",
+		"nvflare>=2.8.1",
+		"pyyaml>=6.0.3",
+	]
+	description = "Add your description here"
+	name = "flare-api"
+	readme = "README.md"
 	requires-python = ">=3.14"
-	version         = "0.1.0"
+	version = "0.1.0"
