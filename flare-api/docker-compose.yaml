@@ -1,0 +1,21 @@
+---
+services:
+  flare-api:
+    build: .
+    container_name: flare-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ../flare/workspace/mip/prod_00/admin@flecke.xyz:/admin:ro
+      # not :ro - submit_job() writes a signature file into the job folder
+      - ../flare/jobs:/jobs
+    networks:
+      - flare
+
+networks:
+  # the running federation's network (see flare/workspace/mip/prod_00/compose.yaml,
+  # named after its directory - must already be up: docker compose up in that dir)
+  flare:
+    name: prod_00_default
+    external: true
