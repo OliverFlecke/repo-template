@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-PROD_DIR=workspace/example_project/prod_00
+PROD_DIR=workspace/mip/prod_00
 if [ ! -d "$PROD_DIR" ]; then
 	echo "no provisioned workspace found, run: uv run nvflare provision -p project.yml -w workspace" >&2
 	exit 1
