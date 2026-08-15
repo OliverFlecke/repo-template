@@ -1,0 +1,18 @@
+---
+name: external-flare-client
+services:
+  external:
+    build: nvflare_compose_client
+    container_name: external
+    volumes:
+      - ./external-01:/workspace
+    environment:
+      NVFLARE_CLIENT_NAME: external
+      NVFLARE_ORG: maritime
+    networks:
+      - flare
+
+networks:
+  flare:
+    name: prod_00_default
+    external: true

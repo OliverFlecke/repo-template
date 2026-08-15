@@ -41,6 +41,7 @@ requirements = Path("requirements.txt").read_text()
 
 (server_dir / "Dockerfile").write_text(f"""\
 FROM {base_image}
+WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN uv pip install --system -r requirements.txt
 ENTRYPOINT ["python3", "-u", "-m", "nvflare.private.fed.app.server.server_train", \
@@ -61,6 +62,7 @@ exec python3 -u -m nvflare.private.fed.app.client.client_train \\
 
 (client_dir / "Dockerfile").write_text(f"""\
 FROM {base_image}
+WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN uv pip install --system -r requirements.txt
 COPY entrypoint.sh /entrypoint.sh

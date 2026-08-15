@@ -1,0 +1,38 @@
+---
+name: flare
+services:
+  server:
+    build: nvflare_compose_server
+    container_name: server
+    volumes:
+      - ./server:/workspace
+      - nvflare_svc_persist:/tmp/nvflare/
+    ports:
+      - "127.0.0.1:8002:8002"
+      - "127.0.0.1:8003:8003"
+  site-1:
+    build: nvflare_compose_client
+    container_name: site-1
+    volumes:
+      - ./site-1:/workspace
+    environment:
+      NVFLARE_CLIENT_NAME: site-1
+      NVFLARE_ORG: maritime
+  site-2:
+    build: nvflare_compose_client
+    container_name: site-2
+    volumes:
+      - ./site-2:/workspace
+    environment:
+      NVFLARE_CLIENT_NAME: site-2
+      NVFLARE_ORG: maritime
+  site-3:
+    build: nvflare_compose_client
+    container_name: site-3
+    volumes:
+      - ./site-3:/workspace
+    environment:
+      NVFLARE_CLIENT_NAME: site-3
+      NVFLARE_ORG: maritime
+volumes:
+  nvflare_svc_persist: null
