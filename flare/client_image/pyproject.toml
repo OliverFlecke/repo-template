@@ -1,0 +1,6 @@
+[project]
+	dependencies    = ["fastapi[standard]==0.141.1"]
+	description     = "Sidecar API baked into each nvflare client container (see ../provision.py)"
+	name            = "client-api"
+	requires-python = ">=3.14"
+	version         = "0.1.0"

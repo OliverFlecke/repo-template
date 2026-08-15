@@ -16,8 +16,8 @@ uv sync
 
 # 1. provision a local "production-like" deployment: 1 server + 3 clients,
 #    with real TLS certs, into workspace/example_project/prod_00
-#    (containers run Python 3.14 via uv, see provision.sh)
-./provision.sh
+#    (containers run Python 3.14 via uv, see provision.py)
+./provision.py
 
 # builds two images: nvflare-server and nvflare-client. The client image is
 # generic - client_train's command (including `uid=...`) is baked into its

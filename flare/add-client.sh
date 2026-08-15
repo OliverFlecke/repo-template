@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Adds one new client to an already-running federation without disrupting the
 # server or existing clients: re-provisions (certs are stable across re-runs,
-# see provision.sh) into a new prod_NN, then grafts just the new client's kit
+# see provision.py) into a new prod_NN, then grafts just the new client's kit
 # and compose service into the live prod_00 and starts only that container.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -11,7 +11,7 @@ ORG="${2:-}"
 
 LIVE_DIR=workspace/example_project/prod_00
 if [ ! -d "$LIVE_DIR" ]; then
-	echo "no live stack found at $LIVE_DIR - run provision.sh and docker compose up first" >&2
+	echo "no live stack found at $LIVE_DIR - run provision.py and docker compose up first" >&2
 	exit 1
 fi
 
@@ -48,7 +48,7 @@ with open("project.yml", "w") as f:
 	yaml.dump(project, f, Dumper=IndentedDumper, sort_keys=False, default_flow_style=False)
 EOF
 
-./provision.sh
+./provision.py
 
 NEW_DIR=$(ls -d workspace/example_project/prod_*/ | sort | tail -1)
 NEW_DIR="${NEW_DIR%/}"

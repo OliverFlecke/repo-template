@@ -6,9 +6,12 @@ services:
     container_name: external
     volumes:
       - ./external-01:/workspace
+      - external_data:/data
     environment:
       NVFLARE_CLIENT_NAME: external
       NVFLARE_ORG: maritime
+    ports:
+      - "127.0.0.1:8094:8080"
     networks:
       - flare
 
@@ -16,3 +19,6 @@ networks:
   flare:
     name: prod_00_default
     external: true
+
+volumes:
+  external_data: null

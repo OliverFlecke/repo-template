@@ -23,7 +23,7 @@ FLARE_ADMIN_USER = os.environ.get("FLARE_ADMIN_USER", "admin@flecke.xyz")
 FLARE_STARTUP_KIT_DIR = os.environ.get("FLARE_STARTUP_KIT_DIR", "/admin")
 # directory of built job definitions, e.g. flare/jobs mounted in (see submit.sh)
 FLARE_JOBS_DIR = os.environ.get("FLARE_JOBS_DIR", "/jobs")
-# flare/project.yml and flare/workspace, mounted read-write (see provision.sh
+# flare/project.yml and flare/workspace, mounted read-write (see provision.py
 # and add-client.sh, which this endpoint mirrors the registration half of)
 FLARE_PROJECT_YML = os.environ.get("FLARE_PROJECT_YML", "/flare-project/project.yml")
 FLARE_WORKSPACE_DIR = os.environ.get(
