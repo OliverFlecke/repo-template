@@ -29,9 +29,7 @@ FLARE_JOBS_DIR = os.environ.get("FLARE_JOBS_DIR", "/jobs")
 # flare/project.yml and flare/workspace, mounted read-write (see provision.py
 # and add-client.sh, which this endpoint mirrors the registration half of)
 FLARE_PROJECT_YML = os.environ.get("FLARE_PROJECT_YML", "/flare-project/project.yml")
-FLARE_WORKSPACE_DIR = os.environ.get(
-    "FLARE_WORKSPACE_DIR", "/flare-project/workspace"
-)
+FLARE_WORKSPACE_DIR = os.environ.get("FLARE_WORKSPACE_DIR", "/flare-project/workspace")
 
 CLIENT_NAME_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 
@@ -222,9 +220,7 @@ def _zip_startup_kit(project_name: str, client_name: str) -> bytes:
         for root, _, files in os.walk(kit_dir):
             for file in files:
                 full_path = os.path.join(root, file)
-                arcname = os.path.join(
-                    client_name, os.path.relpath(full_path, kit_dir)
-                )
+                arcname = os.path.join(client_name, os.path.relpath(full_path, kit_dir))
                 zf.write(full_path, arcname)
     return buffer.getvalue()
 
@@ -236,11 +232,15 @@ def _zip_startup_kit(project_name: str, client_name: str) -> bytes:
     responses={
         200: {
             "description": "Startup kit for the newly provisioned client, as a zip file.",
-            "content": {"application/zip": {"schema": {"type": "string", "format": "binary"}}},
+            "content": {
+                "application/zip": {"schema": {"type": "string", "format": "binary"}}
+            },
         }
     },
 )
-async def provision_client(name: str, request: Request, org: str | None = None) -> Response:
+async def provision_client(
+    name: str, request: Request, org: str | None = None
+) -> Response:
     if not CLIENT_NAME_RE.fullmatch(name):
         raise HTTPException(status_code=400, detail="invalid client name")
 
@@ -256,22 +256,22 @@ async def provision_client(name: str, request: Request, org: str | None = None) 
         client_org = org or next(
             p["org"] for p in participants if p["type"] == "client"
         )
-        insert_at = next(
-            i for i, p in enumerate(participants) if p["type"] == "admin"
-        )
+        insert_at = next(i for i, p in enumerate(participants) if p["type"] == "admin")
         participants.insert(
             insert_at, {"name": name, "type": "client", "org": client_org}
         )
         with open(FLARE_PROJECT_YML, "w") as f:
             yaml.dump(
-                project, f, Dumper=_IndentedYamlDumper, sort_keys=False, default_flow_style=False
+                project,
+                f,
+                Dumper=_IndentedYamlDumper,
+                sort_keys=False,
+                default_flow_style=False,
             )
 
         try:
             await asyncio.to_thread(_run_provision)
-            zip_bytes = await asyncio.to_thread(
-                _zip_startup_kit, project["name"], name
-            )
+            zip_bytes = await asyncio.to_thread(_zip_startup_kit, project["name"], name)
         except RuntimeError as e:
             raise HTTPException(
                 status_code=502, detail=f"provisioning failed: {e}"

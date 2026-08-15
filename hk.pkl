@@ -11,6 +11,14 @@ local frontend = new Group {
 	}
 }
 
+local python = new Group {
+	workspace_indicator = "pyproject.toml"
+	steps {
+		["ruff"] = Builtins.ruff
+		["python-check-ast"] = Builtins.python_check_ast
+	}
+}
+
 local rust = new Group {
 	workspace_indicator = "Cargo.toml"
 	steps {
@@ -60,6 +68,7 @@ hooks {
 			["frontend"] = frontend,
 			["rust"] = rust,
 			["dotnet"] = dotnet,
+			["python"] = python,
 			...shared,
 			["check-merge-conflict"] = Builtins.check_merge_conflict,
 			["check-added-large-files"] = Builtins.check_added_large_files,
@@ -80,6 +89,7 @@ hooks {
 			["frontend"] = frontend,
 			["rust"] = rust,
 			["dotnet"] = dotnet,
+			["python"] = python,
 			...shared,
 		}
 	}
@@ -87,6 +97,7 @@ hooks {
 		steps = {
 			["frontend"] = frontend,
 			["rust"] = rust,
+			["python"] = python,
 			...shared,
 		}
 	}
