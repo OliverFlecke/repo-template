@@ -1,0 +1,7 @@
+[project]
+	dependencies    = ["fastapi[standard]>=0.141.1"]
+	description     = "Add your description here"
+	name            = "flare-api"
+	readme          = "README.md"
+	requires-python = ">=3.14"
+	version         = "0.1.0"
