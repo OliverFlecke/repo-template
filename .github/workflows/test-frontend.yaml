@@ -18,7 +18,7 @@ jobs:
       E2E_LOGIN_PASSWORD: ${{ secrets.E2E_LOGIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v4.2.4
+      - uses: jdx/mise-action@v4.2.5
         with:
           install_args: dotnet node pnpm
 
